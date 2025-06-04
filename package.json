@@ -1,6 +1,6 @@
 {
   "name": "@deep-medi/face-detection-web-sdk",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "웹 기반 얼굴 인식을 통해 실시간으로 심박수, 스트레스, 혈압 등의 건강 정보를 측정하는 SDK",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -27,16 +27,16 @@
     "ppg",
     "heart-rate"
   ],
-  "author": "Your Name <your.email@example.com>",
+  "author": "KO Jong Won <gojw@deep-medi.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/face-detection-web-sdk.git"
+    "url": "git+https://github.com/deep-medi/FaceDetection_Web_SDK.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/face-detection-web-sdk/issues"
+    "url": "https://github.com/deep-medi/FaceDetection_Web_SDK/issues"
   },
-  "homepage": "https://github.com/your-username/face-detection-web-sdk#readme",
+  "homepage": "https://github.com/deep-medi/FaceDetection_Web_SDK#readme",
   "private": false,
   "type": "module",
   "scripts": {
