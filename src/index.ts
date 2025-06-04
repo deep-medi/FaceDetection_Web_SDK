@@ -9,6 +9,7 @@ export {
 export type {
   FaceDetectionSDKConfig,
   FaceDetectionState,
+  FaceDetectionError,
   FaceDetectionErrorType,
   StateChangeCallback,
   MeasurementResult,
@@ -21,6 +22,3 @@ export type {
 // 유틸리티 함수들 (필요한 경우)
 export { checkFacePosition } from './utils/facePositionUtils';
 export { handleDataDownload } from './utils/downloadUtils';
-
-// 상수 내보내기
-export { FaceDetectionState as State } from './types/index';

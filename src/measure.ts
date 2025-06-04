@@ -1,5 +1,9 @@
-import { FaceDetectionSDK } from './common/faceDetectionCore.ts';
-import { CalculatedBoundingBox, FaceDetectionState, FaceDetectionError } from './types/index.ts';
+import {
+  FaceDetectionSDK,
+  CalculatedBoundingBox,
+  FaceDetectionState,
+  FaceDetectionError,
+} from './index.ts';
 
 // 디바이스 감지
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);

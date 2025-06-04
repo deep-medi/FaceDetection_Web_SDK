@@ -1,5 +1,9 @@
 // 외부 라이브러리 및 모듈 임포트
-import common from './imports.ts';
+import { FaceDetection } from '@mediapipe/face_detection';
+import { updatePositionErrors } from '../utils/facePosition.ts';
+import { processResults } from '../utils/faceDetectionProcessor.ts';
+import { processFaceRegionData } from '../utils/faceRegionWorker.ts';
+import { createDataString } from '../utils/dataProcessing.ts';
 import { checkFacePosition } from '../utils/facePositionUtils.ts';
 import { handleDataDownload } from '../utils/downloadUtils.ts';
 import {
@@ -303,7 +307,7 @@ export class FaceDetectionSDK {
         return;
       }
 
-      this.lastRGB = common.processFaceRegionData(
+      this.lastRGB = processFaceRegionData(
         data,
         this.mean_red,
         this.mean_green,
@@ -355,7 +359,7 @@ export class FaceDetectionSDK {
       }
 
       // 2. 얼굴 인식 성공 - 기존 로직으로 처리
-      const result = common.processResults(results, {
+      const result = processResults(results, {
         isFirstFrame: this.isFirstFrame,
         isFaceDetected: this.isFaceDetected,
         faceDetectionTimer: this.faceDetectionTimer,
@@ -421,7 +425,7 @@ export class FaceDetectionSDK {
       lastYPosition: newLastYPosition,
       positionErr: newPositionErr,
       yPositionErr: newYPositionErr,
-    } = common.updatePositionErrors(
+    } = updatePositionErrors(
       faceX,
       faceY,
       this.lastPosition,
@@ -510,7 +514,7 @@ export class FaceDetectionSDK {
     this.setState(FaceDetectionState.COMPLETED);
     this.isFaceDetectiveActive = false;
 
-    const dataString = common.createDataString(
+    const dataString = createDataString(
       this.mean_red,
       this.mean_green,
       this.mean_blue,
@@ -789,7 +793,7 @@ export class FaceDetectionSDK {
    * MediaPipe 초기화
    */
   private async initializeMediaPipe(): Promise<void> {
-    this.faceDetection = new common.FaceDetection({
+    this.faceDetection = new FaceDetection({
       locateFile: (file: string) =>
         `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
     });
