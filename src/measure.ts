@@ -1,9 +1,4 @@
-import {
-  FaceDetectionSDK,
-  CalculatedBoundingBox,
-  FaceDetectionState,
-  FaceDetectionError,
-} from './index.ts';
+import { FaceDetectionSDK, type SDKEventCallbacks, type FaceDetectionSDKConfig } from './index.ts';
 
 // 디바이스 감지
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -25,7 +20,7 @@ if (!video || !canvasElement || !container) {
 }
 
 // SDK 설정
-const sdkConfig = {
+const sdkConfig: FaceDetectionSDKConfig = {
   platform: {
     isIOS,
     isAndroid,
@@ -50,36 +45,36 @@ const sdkConfig = {
 };
 
 // SDK 콜백 설정
-const sdkCallbacks = {
-  onStateChange: (newState: FaceDetectionState, previousState: FaceDetectionState) => {
+const sdkCallbacks: SDKEventCallbacks = {
+  onStateChange: (newState, previousState) => {
     console.log(`[SDK Demo] 상태 변경: ${previousState} → ${newState}`);
   },
 
-  onMeasurementComplete: (result: any) => {
+  onMeasurementComplete: (result) => {
     console.log('[SDK Demo] 측정 완료:', result);
   },
 
-  onProgress: (progress: number, dataLength: number) => {
+  onProgress: (progress, dataLength) => {
     console.log(
       `[SDK Demo] 측정 진행률: ${Math.round(progress * 100)}%, 데이터 개수: ${dataLength}`,
     );
   },
 
-  onFaceDetectionChange: (detected: boolean, boundingBox: CalculatedBoundingBox | null) => {
+  onFaceDetectionChange: (detected, boundingBox) => {
     if (!detected) {
       container.style.border = '8px solid red';
     }
     console.log(boundingBox);
   },
 
-  onError: (error: FaceDetectionError) => {
+  onError: (error) => {
     console.error('[SDK Demo] 오류 발생:', error.type, error.message);
 
     if (error.originalError) {
       console.error('[SDK Demo] 원본 오류:', error.originalError);
     }
   },
-  onFacePositionChange: (isInCircle: boolean) => {
+  onFacePositionChange: (isInCircle) => {
     if (!isInCircle) {
       container.style.border = '8px solid red';
     } else {
