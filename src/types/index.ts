@@ -179,6 +179,9 @@ export interface FaceDetectionSDKConfig {
     /** 다운로드 파일명 (기본값: 'rgb_data.txt') */
     filename?: string;
   };
+
+  /** 에러 바운딩 값 */
+  errorBounding?: number;
 }
 
 // 상태 관리를 위한 enum 정의

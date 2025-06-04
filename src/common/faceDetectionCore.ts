@@ -21,20 +21,6 @@ import {
 // ===== 얼굴 인식 설정 상수 정의 =====
 
 /**
- * 기본 얼굴 인식 설정
- */
-export const FACE_DETECTION_CONFIG = {
-  model: 'short',
-  minDetectionConfidence: 0.5,
-  runningMode: 'VIDEO',
-};
-
-/**
- * 에러 바운딩 값
- */
-export const ERROR_BOUNDING = 4;
-
-/**
  * 기본 SDK 설정
  */
 export const DEFAULT_SDK_CONFIG: Omit<Required<FaceDetectionSDKConfig>, 'elements'> = {
@@ -79,6 +65,7 @@ export const DEFAULT_SDK_CONFIG: Omit<Required<FaceDetectionSDKConfig>, 'element
     autoDownload: false,
     filename: 'rgb_data.txt',
   },
+  errorBounding: 4,
 };
 
 export class FaceDetectionSDK {
@@ -432,7 +419,7 @@ export class FaceDetectionSDK {
       this.lastYPosition,
       this.positionErr,
       this.yPositionErr,
-      ERROR_BOUNDING,
+      this.config.errorBounding || 4,
     );
 
     // 좌표 갱신
@@ -800,7 +787,11 @@ export class FaceDetectionSDK {
 
     // 설정에서 가져온 값으로 얼굴 인식 옵션 설정
     const faceDetectionConfig = {
-      ...FACE_DETECTION_CONFIG,
+      ...{
+        model: 'short',
+        minDetectionConfidence: 0.5,
+        runningMode: 'VIDEO',
+      },
       minDetectionConfidence: this.config.faceDetection.minDetectionConfidence,
     };
 
