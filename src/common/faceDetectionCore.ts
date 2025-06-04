@@ -6,6 +6,7 @@ import { processFaceRegionData } from '../utils/faceRegionWorker.ts';
 import { createDataString } from '../utils/dataProcessing.ts';
 import { checkFacePosition } from '../utils/facePositionUtils.ts';
 import { handleDataDownload } from '../utils/downloadUtils.ts';
+import { waitSeconds } from '../utils/waitSeconds.ts';
 import {
   CalculatedBoundingBox,
   Detection,
@@ -421,7 +422,7 @@ export class FaceDetectionSDK {
       // 1초씩 카운트다운
       for (let remaining = delaySeconds; remaining > 0; remaining--) {
         this.log(`측정 시작까지 ${remaining}초 남았습니다...`);
-        await this.waitSeconds(1);
+        await waitSeconds(1);
 
         // 매 초마다 상태 확인 - 상태가 변경되었거나 얼굴이 원을 벗어났다면 중단
         if (
@@ -516,10 +517,6 @@ export class FaceDetectionSDK {
         message: '얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.',
       });
     }
-  }
-
-  private async waitSeconds(seconds: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
   }
 
   // 얼굴 인식 종료 시 처리
