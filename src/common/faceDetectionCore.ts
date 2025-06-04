@@ -751,7 +751,11 @@ export class FaceDetectionSDK {
    * 워커 초기화
    */
   private initializeWorker(): void {
-    this.faceRegionWorker = new Worker(new URL('../workers/faceRegionWorker.js', import.meta.url));
+    const workerUrl = new URL('../workers/faceRegionWorker.js', import.meta.url);
+    this.faceRegionWorker = new Worker(workerUrl, {
+      type: 'module',
+    });
+
     this.lastRGB = { timestamp: 0, r: null, g: null, b: null };
     this.setupWorker();
   }

@@ -37,6 +37,9 @@ export default defineConfig(({ mode }) => {
         sourcemap: true,
         minify: 'terser',
       },
+      worker: {
+        format: 'es',
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, './src'),
