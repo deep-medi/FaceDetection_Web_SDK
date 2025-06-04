@@ -1,7 +1,4 @@
-# 개발 관련 파일들
-src/
-public/
-index.html
+# 개발 및 빌드 설정 파일들
 vite.config.ts
 tsconfig.json
 .prettierrc
@@ -16,6 +13,7 @@ eslint.config.js
 node_modules/
 .cache/
 coverage/
+dist/temp/
 
 # IDE 관련
 .vscode/
@@ -45,4 +43,12 @@ test/
 tests/
 __tests__/
 *.test.*
-*.spec.* 
+*.spec.*
+
+# 문서 초안
+docs/draft/
+README_draft.md
+
+# 기타 개발용 파일
+.eslintcache
+*.tgz 
