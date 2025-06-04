@@ -1,0 +1,48 @@
+# 개발 관련 파일들
+src/
+public/
+index.html
+vite.config.ts
+tsconfig.json
+.prettierrc
+eslint.config.js
+
+# 환경 설정
+.env
+.env.local
+.env.*.local
+
+# 빌드 및 캐시
+node_modules/
+.cache/
+coverage/
+
+# IDE 관련
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 관련
+.DS_Store
+Thumbs.db
+
+# 로그 파일
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 개발 서버
+.vite/
+
+# Git
+.git/
+.gitignore
+
+# 테스트
+test/
+tests/
+__tests__/
+*.test.*
+*.spec.* 

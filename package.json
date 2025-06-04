@@ -1,15 +1,57 @@
 {
-  "name": "package.json",
-  "private": true,
-  "version": "0.0.0",
+  "name": "@deep-medi/face-detection-web-sdk",
+  "version": "1.0.0",
+  "description": "웹 기반 얼굴 인식을 통해 실시간으로 심박수, 스트레스, 혈압 등의 건강 정보를 측정하는 SDK",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "keywords": [
+    "face-detection",
+    "mediapipe",
+    "health-monitoring",
+    "biometric",
+    "web-sdk",
+    "typescript",
+    "ppg",
+    "heart-rate"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/face-detection-web-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/face-detection-web-sdk/issues"
+  },
+  "homepage": "https://github.com/your-username/face-detection-web-sdk#readme",
+  "private": false,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:lib": "vite build --mode lib",
     "lint": "eslint .",
-    "lint_fix": "npx eslint . --fix",
+    "lint:fix": "npx eslint . --fix",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build:lib",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "peerDependencies": {
+    "@mediapipe/face_detection": "^0.4.1646425229"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
@@ -20,12 +62,12 @@
     "eslint-plugin-prettier": "^5.2.3",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
+    "terser": "^5.40.0",
     "typescript": "^5.8.3",
-    "vite": "^6.2.0"
+    "vite": "^6.2.0",
+    "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
-    "@mediapipe/face_detection": "^0.4.1646425229",
-    "dotenv": "^16.4.7",
     "path": "^0.12.7"
   }
 }

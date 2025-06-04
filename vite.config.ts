@@ -2,33 +2,67 @@ import { defineConfig } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import basicSsl from '@vitejs/plugin-basic-ssl';
-import dotenv from 'dotenv';
+import dts from 'vite-plugin-dts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config();
 
-export default defineConfig({
-  plugins: [basicSsl({})],
-  build: {
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
+export default defineConfig(({ mode }) => {
+  const isLib = mode === 'lib';
+
+  if (isLib) {
+    // 라이브러리 빌드 설정
+    return {
+      plugins: [
+        dts({
+          insertTypesEntry: true,
+          copyDtsFiles: true,
+        }),
+      ],
+      build: {
+        lib: {
+          entry: path.resolve(__dirname, 'src/index.ts'),
+          name: 'FaceDetectionWebSDK',
+          formats: ['es', 'cjs'],
+          fileName: (format) => `index.${format === 'es' ? 'es.js' : 'js'}`,
+        },
+        rollupOptions: {
+          external: ['@mediapipe/face_detection'],
+          output: {
+            globals: {
+              '@mediapipe/face_detection': 'FaceDetection',
+            },
+          },
+        },
+        sourcemap: true,
+        minify: 'terser',
+      },
+      resolve: {
+        alias: {
+          '@': path.resolve(__dirname, './src'),
+        },
+      },
+    };
+  }
+
+  // 기존 개발/데모 빌드 설정
+  return {
+    plugins: [basicSsl({})],
+    build: {
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+        },
       },
     },
-  },
-  server: {
-    host: '0.0.0.0',
-    https: {},
-  },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
+    server: {
+      host: '0.0.0.0',
+      https: {},
     },
-  },
-  define: {
-    'import.meta.env.VITE_API_URL': JSON.stringify(
-      process.env.VITE_SERVER_URL || 'https://default-api.com',
-    ),
-  },
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
+  };
 });
