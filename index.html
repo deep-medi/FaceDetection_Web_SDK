@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta name="title" content="얼굴 메시 데모 - Andy Kong" />
+    <meta
+      name="keywords"
+      content="머신러닝, 미디어파이프, 얼굴 메시, 텐서플로우, 텐서플로우 자바스크립트, PPG, 광용적맥파, 미디엄, 깃허브, 코드, 자바스크립트"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="language" content="Korean" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/src/style/common.css" />
+    <link rel="stylesheet" type="text/css" href="/src/style/measure.css" />
+    <link rel="stylesheet" type="text/css" href="/src/style/modal.css" />
+    <title data-i18n="measure.title">건강 측정</title>
+    <script src="https://unpkg.com/mathjs/lib/browser/math.js"></script>
+  </head>
+
+  <body>
+    <div id="MeasurePage">
+      <section id="Content">
+        <video
+          id="input_video"
+          class="input_video"
+          muted="true"
+          width="640px"
+          height="480px"
+          autoplay
+          playsinline
+        ></video>
+        <canvas class="output_canvas" width="320px" height="240px"></canvas>
+        <div class="progress-bar"></div>
+      </section>
+    </div>
+
+    <script type="module" src="/src/measure.ts"></script>
+  </body>
+</html>

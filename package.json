@@ -1,0 +1,31 @@
+{
+  "name": "package.json",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint .",
+    "lint_fix": "npx eslint . --fix",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.15.23",
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "globals": "^16.0.0",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "@mediapipe/face_detection": "^0.4.1646425229",
+    "dotenv": "^16.4.7",
+    "path": "^0.12.7"
+  }
+}
