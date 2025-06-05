@@ -1,6 +1,6 @@
 {
   "name": "face-detection-web-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "웹 기반 얼굴 인식을 통해 실시간으로 심박수, 스트레스, 혈압 등의 건강 정보를 측정하는 SDK",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
