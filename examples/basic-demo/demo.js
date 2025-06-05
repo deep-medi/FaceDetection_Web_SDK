@@ -6,7 +6,10 @@
  */
 
 // SDK를 import합니다
-import { FaceDetectionSDK } from 'face-detection-web-sdk';
+import { FaceDetectionSDK, SDK_VERSION } from 'face-detection-web-sdk';
+
+// SDK 버전 정보 출력
+console.log(`사용 중인 버전: v${SDK_VERSION}`);
 
 /**
  * 1. 디바이스 감지

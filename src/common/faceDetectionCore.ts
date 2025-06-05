@@ -19,8 +19,12 @@ import {
   SDKEventCallbacks,
 } from '../types/index.js';
 import { DEFAULT_SDK_CONFIG } from '@/config/defaultConfig.js';
+import packageJson from '../../package.json';
 
 export class FaceDetectionSDK {
+  // SDK 버전 정보
+  public static readonly VERSION = packageJson.version;
+
   // SDK 설정
   private config: Required<FaceDetectionSDKConfig>;
   private callbacks: SDKEventCallbacks = {};
@@ -94,7 +98,7 @@ export class FaceDetectionSDK {
       this.onStateChange(callbacks.onStateChange);
     }
 
-    this.log('SDK 인스턴스가 생성되었습니다.');
+    this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
 
   /**
@@ -692,6 +696,13 @@ export class FaceDetectionSDK {
    */
   public isFaceInsideCircle(): boolean {
     return this.isFaceInCircle;
+  }
+
+  /**
+   * SDK 버전 정보를 반환합니다.
+   */
+  public getVersion(): string {
+    return FaceDetectionSDK.VERSION;
   }
 
   // ===== 초기화 메서드들 =====

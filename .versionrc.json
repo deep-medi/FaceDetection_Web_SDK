@@ -1,0 +1,48 @@
+{
+  "types": [
+    {
+      "type": "✨",
+      "section": "✨ 새로운 기능"
+    },
+    {
+      "type": "🐛",
+      "section": "🐛 버그 수정"
+    },
+    {
+      "type": "⚡",
+      "section": "⚡ 성능 개선"
+    },
+    {
+      "type": "♻️",
+      "section": "♻️ 코드 리팩토링"
+    },
+    {
+      "type": "📝",
+      "section": "📝 문서"
+    },
+    {
+      "type": "💄",
+      "section": "💄 스타일"
+    },
+    {
+      "type": "test",
+      "section": "🧪 테스트"
+    },
+    {
+      "type": "build",
+      "section": "🏗️ 빌드 시스템"
+    },
+    {
+      "type": "ci",
+      "section": "👷 CI"
+    },
+    {
+      "type": "🔧",
+      "section": "🔧 기타 수정"
+    }
+  ],
+  "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
+  "header": "# 변경이력 (CHANGELOG)\n\n이 파일은 face-detection-web-sdk의 모든 주요 변경사항을 기록합니다.\n\n형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)을 기반으로 하며,\n이 프로젝트는 [의미적 버전 관리](https://semver.org/lang/ko/)를 따릅니다.\n",
+  "commitUrlFormat": "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
+  "compareUrlFormat": "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}"
+}
