@@ -2,13 +2,14 @@
 
 ## 📋 프로젝트 개요
 
-웹 기반 얼굴 인식을 통해 실시간으로 심박수, 스트레스, 혈압 등의 건강 정보를 측정하는 시스템입니다.  
+웹 기반 얼굴 인식을 통해 실시간으로 RGB 데이터를 추출하는 시스템입니다.  
+이를 통해 심박수, 스트레스, 혈압 등의 건강 정보를 측정할 수 있습니다.  
 MediaPipe와 Canvas API를 활용하여 비접촉식 생체 신호 측정을 제공합니다.
 
 ## ✨ 주요 기능
 
 - **실시간 얼굴 인식**: MediaPipe 기반 고정밀 얼굴 감지
-- **비접촉 생체 신호 측정**: RGB 데이터 기반 PPG 신호 추출
+- **비접촉 생체 신호 측정**: RGB 데이터 추출
 - **상태 관리 시스템**: 체계적인 측정 과정 관리
 - **크로스 플랫폼**: Chrome, Safari 브라우저 지원
 
@@ -72,6 +73,7 @@ npm run preview
 
 ```bash
 # 예제 데모 실행
+sss
 npm run demo
 
 # 브라우저에서 접속
@@ -147,8 +149,6 @@ import { FaceDetectionSDK, FaceDetectionState } from './faceDetectionCore';
 const sdk = new FaceDetectionSDK(
   {
     measurement: {
-      targetDataPoints: 450,
-      frameInterval: 33.33,
       readyToMeasuringDelay: 3,
     },
     faceDetection: {
@@ -249,11 +249,3 @@ setInterval(() => {
   console.log('얼굴 위치:', sdk.isFaceInsideCircle());
 }, 1000);
 ```
-
-## 🤝 기여 방법
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
