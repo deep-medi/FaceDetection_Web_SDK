@@ -73,7 +73,7 @@ npm run preview
 
 ```bash
 # 예제 데모 실행
-sss
+cd node_modules/face-detection-web-sdk
 npm run demo
 
 # 브라우저에서 접속
