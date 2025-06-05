@@ -1,6 +1,46 @@
 {
   "types": [
     {
+      "type": "feat",
+      "section": "✨ 새로운 기능"
+    },
+    {
+      "type": "fix",
+      "section": "🐛 버그 수정"
+    },
+    {
+      "type": "perf",
+      "section": "⚡ 성능 개선"
+    },
+    {
+      "type": "refactor",
+      "section": "♻️ 코드 리팩토링"
+    },
+    {
+      "type": "docs",
+      "section": "📝 문서"
+    },
+    {
+      "type": "style",
+      "section": "💄 스타일"
+    },
+    {
+      "type": "test",
+      "section": "🧪 테스트"
+    },
+    {
+      "type": "build",
+      "section": "🏗️ 빌드 시스템"
+    },
+    {
+      "type": "ci",
+      "section": "👷 CI"
+    },
+    {
+      "type": "chore",
+      "section": "🔧 기타 수정"
+    },
+    {
       "type": "✨",
       "section": "✨ 새로운 기능"
     },
@@ -25,15 +65,15 @@
       "section": "💄 스타일"
     },
     {
-      "type": "test",
+      "type": "🧪",
       "section": "🧪 테스트"
     },
     {
-      "type": "build",
+      "type": "🏗️",
       "section": "🏗️ 빌드 시스템"
     },
     {
-      "type": "ci",
+      "type": "👷",
       "section": "👷 CI"
     },
     {
