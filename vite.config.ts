@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => {
       resolve: {
         alias: {
           '@': path.resolve(__dirname, './src'),
-          '@deep-medi/face-detection-web-sdk': path.resolve(__dirname, './src/index.ts'),
+          'face-detection-web-sdk': path.resolve(__dirname, './src/index.ts'),
         },
       },
     };
@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
-        '@deep-medi/face-detection-web-sdk': path.resolve(__dirname, './src/index.ts'),
+        'face-detection-web-sdk': path.resolve(__dirname, './src/index.ts'),
       },
     },
   };

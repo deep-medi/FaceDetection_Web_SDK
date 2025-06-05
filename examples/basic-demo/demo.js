@@ -6,7 +6,7 @@
  */
 
 // SDK를 import합니다
-import { FaceDetectionSDK } from '@deep-medi/face-detection-web-sdk';
+import { FaceDetectionSDK } from 'face-detection-web-sdk';
 
 /**
  * 1. 디바이스 감지
