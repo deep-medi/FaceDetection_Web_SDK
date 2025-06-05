@@ -66,6 +66,52 @@ npm run build
 npm run preview
 ```
 
+## 🎯 예제 및 데모
+
+### 기본 데모
+
+```bash
+# 예제 데모 실행
+npm run demo
+
+# 브라우저에서 접속
+http://localhost:8080
+```
+
+### 예제 구조
+
+```
+examples/
+└── basic-demo/          # 기본 사용법 데모
+    ├── index.html       # HTML 예제
+    ├── demo.js         # JavaScript 예제
+    └── README.md       # 상세 설명
+```
+
+### 빠른 시작
+
+```javascript
+import { FaceDetectionSDK } from 'face-detection-web-sdk';
+
+// 1. SDK 설정
+const config = {
+  elements: { video, canvasElement, videoCanvas, container },
+  measurement: { readyToMeasuringDelay: 5 },
+};
+
+// 2. 콜백 설정
+const callbacks = {
+  onMeasurementComplete: (result) => {
+    console.log('심박수:', result.heartRate);
+  },
+};
+
+// 3. 초기화 및 시작
+const sdk = new FaceDetectionSDK(config, callbacks);
+await sdk.initialize();
+await sdk.startMeasurement();
+```
+
 ## 💡 사용법
 
 ### 1. 기본 사용 과정
