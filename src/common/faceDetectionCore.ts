@@ -352,16 +352,6 @@ export class FaceDetectionSDK {
       this.startReadyToMeasuringTransition();
     }
 
-    // 얼굴이 제 위치에 있는지 확인 후 텍스트 업데이트
-    const prepareMessage = document.querySelector(
-      '[data-i18n="measure.measuringMessage"]',
-    ) as HTMLElement;
-    if (prepareMessage) {
-      prepareMessage.textContent = isInCircle
-        ? '측정 중입니다...'
-        : '얼굴을 올바르게 위치해주세요.';
-    }
-
     // 좌표로 에러 카운트
     const {
       lastPosition: newLastPosition,
