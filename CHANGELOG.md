@@ -5,6 +5,18 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)을 기반으로 하며,
 이 프로젝트는 [의미적 버전 관리](https://semver.org/lang/ko/)를 따릅니다.
 
+## [0.1.12](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.5...v0.1.12) (2025-06-13)
+
+### 변경됨
+
+- 버전 업데이트 (0.1.5 → 0.1.12)
+
+## [0.1.5](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.4...v0.1.5) (2025-06-13)
+
+### 변경됨
+
+- 버전 업데이트 (0.1.4 → 0.1.5)
+
 ## [0.1.4](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.3...v0.1.4) (2025-06-13)
 
 ### 추가됨
