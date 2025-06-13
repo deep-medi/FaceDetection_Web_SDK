@@ -20,6 +20,7 @@ import {
 import { ConfigManager } from './managers/ConfigManager.js';
 import { EventManager } from './managers/EventManager.js';
 import { MediapipeManager } from './managers/MediapipeManager.js';
+import { StateManager } from './managers/StateManager.js';
 import packageJson from '../../package.json';
 
 export class FaceDetectionSDK {
@@ -30,9 +31,14 @@ export class FaceDetectionSDK {
   private configManager: ConfigManager;
   private eventManager: EventManager;
   private mediapipeManager: MediapipeManager;
+  private stateManager: StateManager;
 
   // 상태 관리
-  private currentState: FaceDetectionState = FaceDetectionState.INITIAL;
+  private isFaceDetectiveActive: boolean = false;
+  private isFaceInCircle: boolean = false;
+  private isReadyTransitionStarted: boolean = false;
+  private isInitialized: boolean = false;
+  private isElementsInitialized: boolean = false;
 
   // 플랫폼 관련
   private downloadRgbData: (dataString: string) => void;
@@ -45,7 +51,6 @@ export class FaceDetectionSDK {
   private container!: HTMLElement;
 
   // 얼굴 인식 관련 변수들
-  private isFaceDetectiveActive: boolean = false;
   private ctx!: CanvasRenderingContext2D;
   private mean_red: number[] = [];
   private mean_green: number[] = [];
@@ -63,19 +68,9 @@ export class FaceDetectionSDK {
   private isFaceDetected: boolean = false;
   private isFirstFrame: boolean = true;
 
-  // 얼굴 위치 상태
-  private isFaceInCircle: boolean = false;
-
-  // ready 상태 전환 플래그
-  private isReadyTransitionStarted: boolean = false;
-
   // MediaPipe 및 워커
   private faceRegionWorker!: Worker;
   private lastRGB!: LastRGB;
-
-  // 초기화 상태
-  private isInitialized: boolean = false;
-  private isElementsInitialized: boolean = false;
 
   // 측정 결과 저장
   private measurementResult: MeasurementResult | null = null;
@@ -91,6 +86,9 @@ export class FaceDetectionSDK {
 
     // EventManager 초기화
     this.eventManager = new EventManager(callbacks, this.log.bind(this));
+
+    // StateManager 초기화
+    this.stateManager = new StateManager(this.eventManager);
 
     // MediapipeManager 초기화
     this.mediapipeManager = new MediapipeManager();
@@ -214,7 +212,7 @@ export class FaceDetectionSDK {
   private setupWorker(): void {
     this.faceRegionWorker.onmessage = ({ data }) => {
       // MEASURING 상태일 때만 데이터 수집
-      if (!this.isState(FaceDetectionState.MEASURING)) {
+      if (!this.stateManager.isState(FaceDetectionState.MEASURING)) {
         return;
       }
 
@@ -307,9 +305,13 @@ export class FaceDetectionSDK {
     }
 
     // 얼굴이 원 안에 들어왔을 때 initial 상태라면 ready 상태로 전환
-    if (this.isState(FaceDetectionState.INITIAL) && !this.isReadyTransitionStarted && isInCircle) {
+    if (
+      this.stateManager.isState(FaceDetectionState.INITIAL) &&
+      !this.isReadyTransitionStarted &&
+      isInCircle
+    ) {
       this.isReadyTransitionStarted = true;
-      this.setState(FaceDetectionState.READY);
+      this.stateManager.setState(FaceDetectionState.READY);
 
       // 카운트다운 시작
       this.startReadyToMeasuringTransition();
@@ -340,8 +342,8 @@ export class FaceDetectionSDK {
     // 얼굴이 원 안에 없다면 데이터 초기화 및 데이터 수집 중단
     if (!isInCircle) {
       // ready 상태였다면 initial로 되돌림 (카운트다운 중단을 위해)
-      if (this.isState(FaceDetectionState.READY)) {
-        this.setState(FaceDetectionState.INITIAL);
+      if (this.stateManager.isState(FaceDetectionState.READY)) {
+        this.stateManager.setState(FaceDetectionState.INITIAL);
         this.isReadyTransitionStarted = false; // 플래그 리셋
       }
 
@@ -358,7 +360,7 @@ export class FaceDetectionSDK {
     }
 
     // 얼굴 영역에서 RGB 데이터 추출 (measuring 상태일 때만)
-    if (this.isState(FaceDetectionState.MEASURING)) {
+    if (this.stateManager.isState(FaceDetectionState.MEASURING)) {
       const width = this.canvasElement.width;
       const height = this.canvasElement.height;
       const faceRegion = this.ctx.getImageData(0, 0, width, height);
@@ -378,7 +380,7 @@ export class FaceDetectionSDK {
 
         // 매 초마다 상태 확인 - 상태가 변경되었거나 얼굴이 원을 벗어났다면 중단
         if (
-          !this.isState(FaceDetectionState.READY) ||
+          !this.stateManager.isState(FaceDetectionState.READY) ||
           !this.isFaceDetectiveActive ||
           !this.isFaceInCircle
         ) {
@@ -388,11 +390,11 @@ export class FaceDetectionSDK {
 
       // 여전히 ready 상태이고 얼굴 인식이 활성화되어 있고 얼굴이 원 안에 있다면 measuring으로 전환
       if (
-        this.isState(FaceDetectionState.READY) &&
+        this.stateManager.isState(FaceDetectionState.READY) &&
         this.isFaceDetectiveActive &&
         this.isFaceInCircle
       ) {
-        this.setState(FaceDetectionState.MEASURING);
+        this.stateManager.setState(FaceDetectionState.MEASURING);
       }
     } catch (error) {
       // 에러 발생 시 로그만 출력 (상태 전환 실패는 치명적이지 않음)
@@ -402,7 +404,7 @@ export class FaceDetectionSDK {
 
   // 측정 완료 시 처리
   private finalizeMeasurement(): string {
-    this.setState(FaceDetectionState.COMPLETED);
+    this.stateManager.setState(FaceDetectionState.COMPLETED);
     this.isFaceDetectiveActive = false;
 
     const dataString = createDataString(
@@ -448,8 +450,8 @@ export class FaceDetectionSDK {
     }
 
     // ready 상태였다면 initial로 되돌림
-    if (this.isState(FaceDetectionState.READY)) {
-      this.setState(FaceDetectionState.INITIAL);
+    if (this.stateManager.isState(FaceDetectionState.READY)) {
+      this.stateManager.setState(FaceDetectionState.INITIAL);
       this.isReadyTransitionStarted = false; // 플래그 리셋
     }
 
@@ -558,44 +560,35 @@ export class FaceDetectionSDK {
    * 현재 상태를 반환합니다.
    */
   public getCurrentState(): FaceDetectionState {
-    return this.currentState;
-  }
-
-  /**
-   * 상태를 변경하고 콜백을 호출합니다.
-   */
-  private setState(newState: FaceDetectionState): void {
-    const previousState = this.currentState;
-    this.currentState = newState;
-    this.eventManager.emitStateChange(newState, previousState);
+    return this.stateManager.getCurrentState();
   }
 
   /**
    * 상태 변경 콜백을 등록합니다.
    */
   public onStateChange(callback: StateChangeCallback): void {
-    this.eventManager.onStateChange(callback);
+    this.stateManager.onStateChange(callback);
   }
 
   /**
    * 상태 변경 콜백을 제거합니다.
    */
   public removeStateChangeCallback(callback: StateChangeCallback): void {
-    this.eventManager.removeStateChangeCallback(callback);
+    this.stateManager.removeStateChangeCallback(callback);
   }
 
   /**
    * 특정 상태인지 확인합니다.
    */
   public isState(state: FaceDetectionState): boolean {
-    return this.currentState === state;
+    return this.stateManager.isState(state);
   }
 
   /**
    * 여러 상태 중 하나인지 확인합니다.
    */
   public isAnyState(...states: FaceDetectionState[]): boolean {
-    return states.includes(this.currentState);
+    return this.stateManager.isAnyState(...states);
   }
 
   /**
