@@ -13,12 +13,12 @@ import {
   LastRGB,
   FaceDetectionSDKConfig,
   FaceDetectionState,
-  FaceDetectionErrorType,
   StateChangeCallback,
   MeasurementResult,
   SDKEventCallbacks,
 } from '../types/index.js';
 import { ConfigManager } from './managers/ConfigManager.js';
+import { EventManager } from './managers/EventManager.js';
 import packageJson from '../../package.json';
 
 export class FaceDetectionSDK {
@@ -27,11 +27,10 @@ export class FaceDetectionSDK {
 
   // SDK 설정
   private configManager: ConfigManager;
-  private callbacks: SDKEventCallbacks = {};
+  private eventManager: EventManager;
 
   // 상태 관리
   private currentState: FaceDetectionState = FaceDetectionState.INITIAL;
-  private stateChangeCallbacks: StateChangeCallback[] = [];
 
   // 플랫폼 관련
   private downloadRgbData: (dataString: string) => void;
@@ -88,15 +87,12 @@ export class FaceDetectionSDK {
   constructor(config: FaceDetectionSDKConfig = {}, callbacks: SDKEventCallbacks = {}) {
     // ConfigManager 초기화
     this.configManager = new ConfigManager(config);
-    this.callbacks = callbacks;
+
+    // EventManager 초기화
+    this.eventManager = new EventManager(callbacks, this.log.bind(this));
 
     // 플랫폼별 다운로드 함수 설정
     this.downloadRgbData = this.createDownloadFunction();
-
-    // 상태 변경 콜백 등록
-    if (callbacks.onStateChange) {
-      this.onStateChange(callbacks.onStateChange);
-    }
 
     this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
@@ -158,9 +154,8 @@ export class FaceDetectionSDK {
       this.webcamStream.getTracks().forEach((track) => track.stop());
     }
 
-    // 콜백 정리
-    this.stateChangeCallbacks = [];
-    this.callbacks = {};
+    // 이벤트 매니저 정리
+    this.eventManager.dispose();
 
     // 상태 초기화
     this.isInitialized = false;
@@ -205,16 +200,7 @@ export class FaceDetectionSDK {
    * 오류 처리
    */
   private handleError(error: Error, context?: string): void {
-    const errorMessage = context ? `${context}: ${error.message}` : error.message;
-    this.log(`오류 발생: ${errorMessage}`, error);
-
-    if (this.callbacks.onError) {
-      this.callbacks.onError({
-        type: FaceDetectionErrorType.UNKNOWN_ERROR,
-        message: errorMessage,
-        originalError: error,
-      });
-    }
+    this.eventManager.emitError(error, context);
   }
 
   // 워커 설정
@@ -253,9 +239,7 @@ export class FaceDetectionSDK {
         );
 
         // 진행률 콜백 호출
-        if (this.callbacks.onProgress) {
-          this.callbacks.onProgress(progress, this.timingHist.length);
-        }
+        this.eventManager.emitProgress(progress, this.timingHist.length);
 
         // 정확히 목표 데이터 개수에 도달했을 때 결과 처리
         if (
@@ -300,9 +284,7 @@ export class FaceDetectionSDK {
   // 얼굴 인식 처리
   private handleFaceDetection(detection: Detection): void {
     // 얼굴 감지 성공 콜백 호출
-    if (this.callbacks.onFaceDetectionChange) {
-      this.callbacks.onFaceDetectionChange(true, this.lastBoundingBox);
-    }
+    this.eventManager.emitFaceDetectionChange(true, this.lastBoundingBox);
 
     const { boundingBox } = detection; // 바운딩 박스 추출
     const faceX = boundingBox.xCenter * this.video.videoWidth; // 얼굴 위치 x 좌표
@@ -314,11 +296,7 @@ export class FaceDetectionSDK {
     // 얼굴 위치 상태 업데이트
     if (this.isFaceInCircle !== isInCircle) {
       this.isFaceInCircle = isInCircle;
-
-      // 얼굴 위치 변경 콜백 호출
-      if (this.callbacks.onFacePositionChange) {
-        this.callbacks.onFacePositionChange(isInCircle);
-      }
+      this.eventManager.emitFacePositionChange(isInCircle);
     }
 
     // 얼굴이 원 안에 들어왔을 때 initial 상태라면 ready 상태로 전환
@@ -367,12 +345,7 @@ export class FaceDetectionSDK {
       this.timingHist = [];
 
       // 얼굴이 원 밖에 있다는 에러 콜백 호출
-      if (this.callbacks.onError) {
-        this.callbacks.onError({
-          type: FaceDetectionErrorType.FACE_OUT_OF_CIRCLE,
-          message: '원 안에 얼굴을 위치해주세요.',
-        });
-      }
+      this.eventManager.emitError(new Error('원 안에 얼굴을 위치해주세요.'), 'FACE_OUT_OF_CIRCLE');
 
       return;
     }
@@ -448,9 +421,7 @@ export class FaceDetectionSDK {
     };
 
     // 측정 완료 콜백 호출
-    if (this.callbacks.onMeasurementComplete && this.measurementResult) {
-      this.callbacks.onMeasurementComplete(this.measurementResult);
-    }
+    this.eventManager.emitMeasurementComplete(this.measurementResult);
 
     // RGB 데이터 다운로드 (플랫폼별 함수 사용)
     this.downloadRgbData(dataString);
@@ -461,13 +432,12 @@ export class FaceDetectionSDK {
   // 얼굴 인식 실패 시 처리
   private handleNoDetection(): void {
     // 얼굴 감지 상태 콜백 호출
-    if (this.callbacks.onFaceDetectionChange) {
-      this.callbacks.onFaceDetectionChange(false, null);
-    }
+    this.eventManager.emitFaceDetectionChange(false, null);
 
     // 얼굴이 감지되지 않으면 원 안에 있지 않다고 설정
     if (this.isFaceInCircle) {
       this.isFaceInCircle = false;
+      this.eventManager.emitFacePositionChange(false);
     }
 
     // ready 상태였다면 initial로 되돌림
@@ -483,12 +453,10 @@ export class FaceDetectionSDK {
     this.timingHist = [];
 
     // 얼굴 인식 실패 에러 콜백 호출 (상태 변경 없음)
-    if (this.callbacks.onError) {
-      this.callbacks.onError({
-        type: FaceDetectionErrorType.FACE_NOT_DETECTED,
-        message: '얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.',
-      });
-    }
+    this.eventManager.emitError(
+      new Error('얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.'),
+      'FACE_NOT_DETECTED',
+    );
   }
 
   // 얼굴 인식 종료 시 처리
@@ -573,37 +541,8 @@ export class FaceDetectionSDK {
 
   // 웹캠 에러 처리 (플랫폼별 차이 반영)
   private handleWebcamError(err: Error): void {
-    let errorType: FaceDetectionErrorType;
-    let errorMessage: string;
-
-    // 권한 오류 확인
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      errorType = FaceDetectionErrorType.WEBCAM_PERMISSION_DENIED;
-      errorMessage =
-        '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.';
-    } else if (
-      this.configManager.getConfig().platform.isIOS &&
-      err.message &&
-      (err.message.includes('permission') ||
-        err.message.includes('허가') ||
-        err.message.includes('권한'))
-    ) {
-      errorType = FaceDetectionErrorType.WEBCAM_PERMISSION_DENIED;
-      errorMessage =
-        '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.';
-    } else {
-      errorType = FaceDetectionErrorType.WEBCAM_ACCESS_FAILED;
-      errorMessage = `웹캠에 접근할 수 없습니다: ${err.message}`;
-    }
-
-    // 에러 콜백 호출
-    if (this.callbacks.onError) {
-      this.callbacks.onError({
-        type: errorType,
-        message: errorMessage,
-        originalError: err,
-      });
-    }
+    const isIOS = this.configManager.getConfig().platform.isIOS || false;
+    this.eventManager.emitWebcamError(err, isIOS);
   }
 
   // 상태 관리 메서드들
@@ -621,32 +560,21 @@ export class FaceDetectionSDK {
   private setState(newState: FaceDetectionState): void {
     const previousState = this.currentState;
     this.currentState = newState;
-
-    // 모든 콜백 호출
-    this.stateChangeCallbacks.forEach((callback) => {
-      try {
-        callback(newState, previousState);
-      } catch (error) {
-        console.error('상태 변경 콜백 실행 중 오류:', error);
-      }
-    });
+    this.eventManager.emitStateChange(newState, previousState);
   }
 
   /**
    * 상태 변경 콜백을 등록합니다.
    */
   public onStateChange(callback: StateChangeCallback): void {
-    this.stateChangeCallbacks.push(callback);
+    this.eventManager.onStateChange(callback);
   }
 
   /**
    * 상태 변경 콜백을 제거합니다.
    */
   public removeStateChangeCallback(callback: StateChangeCallback): void {
-    const index = this.stateChangeCallbacks.indexOf(callback);
-    if (index > -1) {
-      this.stateChangeCallbacks.splice(index, 1);
-    }
+    this.eventManager.removeStateChangeCallback(callback);
   }
 
   /**
