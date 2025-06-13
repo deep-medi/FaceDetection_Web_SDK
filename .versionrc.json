@@ -84,5 +84,22 @@
   "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
   "header": "# 변경이력 (CHANGELOG)\n\n이 파일은 face-detection-web-sdk의 모든 주요 변경사항을 기록합니다.\n\n형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)을 기반으로 하며,\n이 프로젝트는 [의미적 버전 관리](https://semver.org/lang/ko/)를 따릅니다.\n",
   "commitUrlFormat": "{{host}}/{{owner}}/{{repository}}/commit/{{hash}}",
-  "compareUrlFormat": "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}"
+  "compareUrlFormat": "{{host}}/{{owner}}/{{repository}}/compare/{{previousTag}}...{{currentTag}}",
+  "issueUrlFormat": "{{host}}/{{owner}}/{{repository}}/issues/{{id}}",
+  "bumpFiles": [
+    {
+      "filename": "package.json",
+      "type": "json"
+    },
+    {
+      "filename": "package-lock.json",
+      "type": "json"
+    }
+  ],
+  "skip": {
+    "changelog": false,
+    "bump": false,
+    "commit": false,
+    "tag": false
+  }
 }
