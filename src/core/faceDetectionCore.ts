@@ -18,7 +18,7 @@ import {
   MeasurementResult,
   SDKEventCallbacks,
 } from '../types/index.js';
-import { DEFAULT_SDK_CONFIG } from '@/config/defaultConfig.js';
+import { ConfigManager } from './managers/ConfigManager.js';
 import packageJson from '../../package.json';
 
 export class FaceDetectionSDK {
@@ -26,7 +26,7 @@ export class FaceDetectionSDK {
   public static readonly VERSION = packageJson.version;
 
   // SDK 설정
-  private config: Required<FaceDetectionSDKConfig>;
+  private configManager: ConfigManager;
   private callbacks: SDKEventCallbacks = {};
 
   // 상태 관리
@@ -86,8 +86,8 @@ export class FaceDetectionSDK {
    * @param callbacks 이벤트 콜백 객체
    */
   constructor(config: FaceDetectionSDKConfig = {}, callbacks: SDKEventCallbacks = {}) {
-    // 설정 병합 (기본값 + 사용자 설정)
-    this.config = this.mergeConfig(DEFAULT_SDK_CONFIG, config);
+    // ConfigManager 초기화
+    this.configManager = new ConfigManager(config);
     this.callbacks = callbacks;
 
     // 플랫폼별 다운로드 함수 설정
@@ -169,48 +169,22 @@ export class FaceDetectionSDK {
     this.log('SDK가 정리되었습니다.');
   }
 
-  // ===== 설정 관련 메서드 =====
-
-  /**
-   * 설정 병합 (깊은 병합)
-   */
-  private mergeConfig(
-    defaultConfig: Omit<Required<FaceDetectionSDKConfig>, 'elements'>,
-    userConfig: FaceDetectionSDKConfig,
-  ): Required<FaceDetectionSDKConfig> {
-    const merged = JSON.parse(JSON.stringify(defaultConfig)) as any;
-
-    Object.keys(userConfig).forEach((key) => {
-      const userValue = userConfig[key as keyof FaceDetectionSDKConfig];
-      if (userValue !== undefined) {
-        if (key === 'elements') {
-          merged[key] = userValue;
-        } else if (typeof userValue === 'object' && !Array.isArray(userValue)) {
-          merged[key] = { ...merged[key], ...userValue };
-        } else {
-          merged[key] = userValue;
-        }
-      }
-    });
-
-    return merged;
-  }
-
   /**
    * 플랫폼별 다운로드 함수 생성
    */
   private createDownloadFunction(): (dataString: string) => void {
     return (dataString: string) => {
+      const config = this.configManager.getConfig();
       handleDataDownload(
         dataString,
         {
-          enabled: this.config.dataDownload.enabled!,
-          autoDownload: this.config.dataDownload.autoDownload!,
-          filename: this.config.dataDownload.filename!,
+          enabled: config.dataDownload.enabled!,
+          autoDownload: config.dataDownload.autoDownload!,
+          filename: config.dataDownload.filename!,
         },
         {
-          isAndroid: this.config.platform.isAndroid,
-          isIOS: this.config.platform.isIOS,
+          isAndroid: config.platform.isAndroid,
+          isIOS: config.platform.isIOS,
         },
         this.log.bind(this),
       );
@@ -221,7 +195,8 @@ export class FaceDetectionSDK {
    * 디버그 로그
    */
   private log(message: string, ...args: any[]): void {
-    if (this.config.debug.enableConsoleLog) {
+    const config = this.configManager.getConfig();
+    if (config.debug.enableConsoleLog) {
       console.log(`[FaceDetectionSDK] ${message}`, ...args);
     }
   }
@@ -259,8 +234,9 @@ export class FaceDetectionSDK {
         this.lastRGB,
       );
 
-      if (this.timingHist.length > this.config.measurement.targetDataPoints!) {
-        const excess = this.timingHist.length - this.config.measurement.targetDataPoints!;
+      if (this.timingHist.length > this.configManager.getConfig().measurement.targetDataPoints!) {
+        const excess =
+          this.timingHist.length - this.configManager.getConfig().measurement.targetDataPoints!;
 
         this.mean_red.splice(0, excess);
         this.mean_green.splice(0, excess);
@@ -272,7 +248,7 @@ export class FaceDetectionSDK {
       if (this.timingHist.length > 0) {
         // 데이터 개수 기준으로 진행률 계산 (목표 데이터 개수 기준)
         const progress = Math.min(
-          this.timingHist.length / this.config.measurement.targetDataPoints!,
+          this.timingHist.length / this.configManager.getConfig().measurement.targetDataPoints!,
           1.0,
         );
 
@@ -282,7 +258,9 @@ export class FaceDetectionSDK {
         }
 
         // 정확히 목표 데이터 개수에 도달했을 때 결과 처리
-        if (this.timingHist.length === this.config.measurement.targetDataPoints!) {
+        if (
+          this.timingHist.length === this.configManager.getConfig().measurement.targetDataPoints!
+        ) {
           this.finalizeMeasurement();
         }
       }
@@ -306,7 +284,7 @@ export class FaceDetectionSDK {
         isFirstFrame: this.isFirstFrame,
         isFaceDetected: this.isFaceDetected,
         faceDetectionTimer: this.faceDetectionTimer,
-        FACE_DETECTION_TIMEOUT: this.config.faceDetection.timeout!,
+        FACE_DETECTION_TIMEOUT: this.configManager.getConfig().faceDetection.timeout!,
         handleFaceDetection: this.handleFaceDetection.bind(this),
         handleNoDetection: this.handleNoDetection.bind(this),
         mean_red: this.mean_red,
@@ -365,7 +343,7 @@ export class FaceDetectionSDK {
       this.lastYPosition,
       this.positionErr,
       this.yPositionErr,
-      this.config.errorBounding || 4,
+      this.configManager.getConfig().errorBounding || 4,
     );
 
     // 좌표 갱신
@@ -411,7 +389,7 @@ export class FaceDetectionSDK {
   // ready 상태에서 measuring 상태로 전환하는 비동기 함수
   private async startReadyToMeasuringTransition(): Promise<void> {
     try {
-      const delaySeconds = this.config.measurement.readyToMeasuringDelay!;
+      const delaySeconds = this.configManager.getConfig().measurement.readyToMeasuringDelay!;
 
       // 1초씩 카운트다운
       for (let remaining = delaySeconds; remaining > 0; remaining--) {
@@ -541,9 +519,9 @@ export class FaceDetectionSDK {
 
       // 웹캠 스트림 설정 (설정값 사용)
       const videoConfig = {
-        width: this.config.video.width,
-        height: this.config.video.height,
-        frameRate: this.config.video.frameRate,
+        width: this.configManager.getConfig().video.width,
+        height: this.configManager.getConfig().video.height,
+        frameRate: this.configManager.getConfig().video.frameRate,
       };
 
       this.webcamStream = await navigator.mediaDevices.getUserMedia({
@@ -560,8 +538,9 @@ export class FaceDetectionSDK {
           if (!this.isFaceDetectiveActive || this.video.readyState < 3) return;
           const now = performance.now();
           const elapsed = now - lastFrameTime;
-          if (elapsed > this.config.measurement.frameInterval!) {
-            lastFrameTime = now - (elapsed % this.config.measurement.frameInterval!);
+          if (elapsed > this.configManager.getConfig().measurement.frameInterval!) {
+            lastFrameTime =
+              now - (elapsed % this.configManager.getConfig().measurement.frameInterval!);
             frameCount++;
 
             this.videoCtx.drawImage(
@@ -572,7 +551,10 @@ export class FaceDetectionSDK {
               this.videoCanvas.height,
             );
 
-            if (frameCount % this.config.measurement.frameProcessInterval! === 0) {
+            if (
+              frameCount % this.configManager.getConfig().measurement.frameProcessInterval! ===
+              0
+            ) {
               await this.faceDetection.send({ image: this.video });
             } else if (this.lastBoundingBox && this.isFaceInCircle) {
               const { left, top, width, height } = this.lastBoundingBox;
@@ -600,7 +582,7 @@ export class FaceDetectionSDK {
       errorMessage =
         '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.';
     } else if (
-      this.config.platform.isIOS &&
+      this.configManager.getConfig().platform.isIOS &&
       err.message &&
       (err.message.includes('permission') ||
         err.message.includes('허가') ||
@@ -701,16 +683,17 @@ export class FaceDetectionSDK {
    * HTML 요소들 초기화 (외부에서 호출 가능)
    */
   public async initializeElements(): Promise<void> {
-    if (!this.config.elements) {
+    const config = this.configManager.getConfig();
+    if (!config.elements) {
       throw new Error(
         'HTML 요소들이 config에 제공되지 않았습니다. config.elements를 설정해주세요.',
       );
     }
 
-    this.video = this.config.elements.video;
-    this.canvasElement = this.config.elements.canvasElement;
-    this.videoCanvas = this.config.elements.videoCanvas;
-    this.container = this.config.elements.container;
+    this.video = config.elements.video;
+    this.canvasElement = config.elements.canvasElement;
+    this.videoCanvas = config.elements.videoCanvas;
+    this.container = config.elements.container;
 
     // 비디오 캔버스 컨텍스트 초기화
     const videoCtx = this.videoCanvas.getContext('2d', { willReadFrequently: true });
@@ -734,6 +717,7 @@ export class FaceDetectionSDK {
         `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
     });
 
+    const config = this.configManager.getConfig();
     // 설정에서 가져온 값으로 얼굴 인식 옵션 설정
     const faceDetectionConfig = {
       ...{
@@ -741,7 +725,7 @@ export class FaceDetectionSDK {
         minDetectionConfidence: 0.5,
         runningMode: 'VIDEO',
       },
-      minDetectionConfidence: this.config.faceDetection.minDetectionConfidence,
+      minDetectionConfidence: config.faceDetection.minDetectionConfidence,
     };
 
     this.faceDetection.setOptions(faceDetectionConfig);
