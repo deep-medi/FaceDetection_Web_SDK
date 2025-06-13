@@ -5,13 +5,18 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)을 기반으로 하며,
 이 프로젝트는 [의미적 버전 관리](https://semver.org/lang/ko/)를 따릅니다.
 
-### [0.1.4](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.3...v0.1.4) (2025-06-13)
+## [0.1.4](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.3...v0.1.4) (2025-06-13)
+
+### 추가됨
+
+- CHANGELOG 자동 생성 기능 추가
+- 버전 관리 시스템 개선
 
 ## [0.1.3](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.2...v0.1.3) (2025-06-09)
 
 ## [0.1.2](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.1...v0.1.2) (2025-06-05)
 
-## [0.1.1] - 2024-06-05
+## [0.1.1](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.0...v0.1.1) (2024-06-05)
 
 ### 추가됨
 
@@ -31,7 +36,7 @@
 - package.json에서 스코프드 패키지명 제거 (`@deep-medi/face-detection-web-sdk` → `face-detection-web-sdk`)
 - vite.config.ts alias 설정 업데이트
 
-## [0.1.0] - 2024-06-05
+## [0.1.0](https://github.com/deep-medi/FaceDetection_Web_SDK/releases/tag/v0.1.0) (2024-06-05)
 
 ### 추가됨
 
