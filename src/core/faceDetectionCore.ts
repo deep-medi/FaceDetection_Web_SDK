@@ -1,5 +1,5 @@
 // 외부 라이브러리 및 모듈 임포트
-import { FaceDetection } from '@mediapipe/face_detection';
+
 import { updatePositionErrors } from '../utils/facePosition.ts';
 import { processResults } from '../utils/faceDetectionProcessor.ts';
 import { processFaceRegionData } from '../utils/faceRegionWorker.ts';
@@ -19,6 +19,7 @@ import {
 } from '../types/index.js';
 import { ConfigManager } from './managers/ConfigManager.js';
 import { EventManager } from './managers/EventManager.js';
+import { MediapipeManager } from './managers/MediapipeManager.js';
 import packageJson from '../../package.json';
 
 export class FaceDetectionSDK {
@@ -28,6 +29,7 @@ export class FaceDetectionSDK {
   // SDK 설정
   private configManager: ConfigManager;
   private eventManager: EventManager;
+  private mediapipeManager: MediapipeManager;
 
   // 상태 관리
   private currentState: FaceDetectionState = FaceDetectionState.INITIAL;
@@ -68,7 +70,6 @@ export class FaceDetectionSDK {
   private isReadyTransitionStarted: boolean = false;
 
   // MediaPipe 및 워커
-  private faceDetection!: any;
   private faceRegionWorker!: Worker;
   private lastRGB!: LastRGB;
 
@@ -90,6 +91,9 @@ export class FaceDetectionSDK {
 
     // EventManager 초기화
     this.eventManager = new EventManager(callbacks, this.log.bind(this));
+
+    // MediapipeManager 초기화
+    this.mediapipeManager = new MediapipeManager();
 
     // 플랫폼별 다운로드 함수 설정
     this.downloadRgbData = this.createDownloadFunction();
@@ -153,6 +157,9 @@ export class FaceDetectionSDK {
     if (this.webcamStream) {
       this.webcamStream.getTracks().forEach((track) => track.stop());
     }
+
+    // MediapipeManager 정리
+    this.mediapipeManager.dispose();
 
     // 이벤트 매니저 정리
     this.eventManager.dispose();
@@ -253,7 +260,7 @@ export class FaceDetectionSDK {
 
   // 얼굴 인식 설정
   private setupFaceDetection(): void {
-    this.faceDetection.onResults((results: any) => {
+    this.mediapipeManager.setOnResultsCallback((results: any) => {
       // 1. 먼저 얼굴 인식 여부 판단 (최우선)
       const hasDetections = results.detections && results.detections.length > 0;
 
@@ -523,7 +530,7 @@ export class FaceDetectionSDK {
               frameCount % this.configManager.getConfig().measurement.frameProcessInterval! ===
               0
             ) {
-              await this.faceDetection.send({ image: this.video });
+              await this.mediapipeManager.sendImage(this.video);
             } else if (this.lastBoundingBox && this.isFaceInCircle) {
               const { left, top, width, height } = this.lastBoundingBox;
               const faceRegion = this.videoCtx.getImageData(left, top, width, height);
@@ -640,23 +647,8 @@ export class FaceDetectionSDK {
    * MediaPipe 초기화
    */
   private async initializeMediaPipe(): Promise<void> {
-    this.faceDetection = new FaceDetection({
-      locateFile: (file: string) =>
-        `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`,
-    });
-
     const config = this.configManager.getConfig();
-    // 설정에서 가져온 값으로 얼굴 인식 옵션 설정
-    const faceDetectionConfig = {
-      ...{
-        model: 'short',
-        minDetectionConfidence: 0.5,
-        runningMode: 'VIDEO',
-      },
-      minDetectionConfidence: config.faceDetection.minDetectionConfidence,
-    };
-
-    this.faceDetection.setOptions(faceDetectionConfig);
+    await this.mediapipeManager.initialize(config.faceDetection.minDetectionConfidence);
     this.setupFaceDetection();
   }
 
