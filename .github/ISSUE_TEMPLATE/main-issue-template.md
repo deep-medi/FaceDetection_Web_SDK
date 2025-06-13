@@ -1,6 +1,6 @@
 ---
-name: 이슈 제목을 적어주세요.
-about: 다음과 같이 이슈를 생성합니다.
+name: Main issue template
+about: 생성 후 하위 이슈를 연결해주세요
 title: "[ISSUE]"
 labels: ''
 assignees: ''
