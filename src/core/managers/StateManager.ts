@@ -17,7 +17,7 @@ export class StateManager {
   }
 
   /**
-   * 상태를 변경하고 콜백을 호출합니다.
+   * 상태를 변경하고 이벤트를 발생시킵니다.
    */
   public setState(newState: FaceDetectionState): void {
     const previousState = this.currentState;

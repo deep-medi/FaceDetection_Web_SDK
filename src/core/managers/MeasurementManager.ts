@@ -116,21 +116,6 @@ export class MeasurementManager {
   }
 
   /**
-   * 현재 데이터 개수를 반환합니다.
-   */
-  public getDataCount(): number {
-    return this.timingHist.length;
-  }
-
-  /**
-   * 목표 데이터 개수에 도달했는지 확인합니다.
-   */
-  public isMeasurementComplete(): boolean {
-    const targetDataPoints = this.config.measurement?.targetDataPoints || 450;
-    return this.timingHist.length >= targetDataPoints;
-  }
-
-  /**
    * ready 상태에서 measuring 상태로 전환하는 카운트다운을 시작합니다.
    */
   public async startReadyToMeasuringTransition(

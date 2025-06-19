@@ -46,13 +46,6 @@ export class WebcamManager {
   }
 
   /**
-   * 현재 웹캠 스트림을 반환합니다.
-   */
-  public getWebcamStream(): MediaStream | null {
-    return this.webcamStream;
-  }
-
-  /**
    * 웹캠 에러를 처리합니다.
    */
   private handleWebcamError(err: Error): void {

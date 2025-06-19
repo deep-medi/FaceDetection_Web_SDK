@@ -7,7 +7,7 @@ export class MediapipeManager {
   constructor() {}
 
   /**
-   * MediaPipe 초기화
+   * MediaPipe Face Detection을 초기화합니다.
    */
   public async initialize(minDetectionConfidence: number = 0.5): Promise<void> {
     this.faceDetection = new FaceDetection({
@@ -26,7 +26,7 @@ export class MediapipeManager {
   }
 
   /**
-   * 결과 처리 콜백 설정
+   * 얼굴 인식 결과 처리 콜백을 설정합니다.
    */
   public setOnResultsCallback(callback: (results: any) => void): void {
     this.onResultsCallback = callback;
@@ -34,14 +34,14 @@ export class MediapipeManager {
   }
 
   /**
-   * 이미지 전송
+   * 이미지를 MediaPipe에 전송하여 얼굴 인식을 수행합니다.
    */
   public async sendImage(image: HTMLCanvasElement | HTMLVideoElement): Promise<void> {
     await this.faceDetection.send({ image });
   }
 
   /**
-   * MediaPipe 정리
+   * MediaPipe 리소스를 정리합니다.
    */
   public dispose(): void {
     if (this.faceDetection) {

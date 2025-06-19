@@ -53,11 +53,4 @@ export class WorkerManager {
   public getLastRGB(): LastRGB {
     return this.lastRGB;
   }
-
-  /**
-   * LastRGB 데이터를 설정합니다.
-   */
-  public setLastRGB(lastRGB: LastRGB): void {
-    this.lastRGB = lastRGB;
-  }
 }
