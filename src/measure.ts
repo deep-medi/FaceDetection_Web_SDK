@@ -91,14 +91,9 @@ window.onload = async (): Promise<void> => {
   try {
     console.log('[SDK Demo] SDK 초기화 및 측정 시작...');
 
-    // HTML 요소들이 config에 포함되어 있으므로 initializeElements 호출
-    await faceDetectionSDK.initializeElements();
+    // SDK 완전 초기화 및 측정 시작 (한 번에 처리)
+    await faceDetectionSDK.initializeAndStart();
 
-    // SDK 초기화 (MediaPipe, 워커 등)
-    await faceDetectionSDK.initialize();
-
-    // 측정 시작
-    await faceDetectionSDK.startMeasurement();
     console.log('[SDK Demo] 준비 완료');
   } catch (error) {
     console.error('[SDK Demo] 초기화 또는 측정 시작 실패:', error);
