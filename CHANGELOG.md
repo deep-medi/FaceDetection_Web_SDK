@@ -5,6 +5,42 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)을 기반으로 하며,
 이 프로젝트는 [의미적 버전 관리](https://semver.org/lang/ko/)를 따릅니다.
 
+### [0.1.14](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.13...v0.1.14) (2025-06-19)
+
+
+### 📝 문서
+
+* 이슈 템플릿 추가 ([ad9b5ff](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/ad9b5ffd9787bd808533abbdf25cd35babdfade0))
+* add issue templates ([4605041](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/4605041a3e4a7a4ba5d9386b017e76e1f99b5c4a))
+* add issue templates ([9f82ad6](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/9f82ad687acfa8e7a3be9b71abc66f5c8ca6202f))
+
+
+### ✨ 새로운 기능
+
+* EventManager 클래스를 추가하고 FaceDetectionSDK에서 이벤트 관리 로직을 통합하여 콜백 처리 방식을 개선함 ([53d257a](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/53d257aa8f8f1c2fad648aa8b73e5dc81b483785))
+* FaceDetectionSDK 클래스 및 ConfigManager 추가, 경로 수정 ([b09d199](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/b09d19984cc4a76bce50805b92963ea90aa053ab))
+* FaceDetectionSDK에 상태 관리 기능을 추가하고 StateManager 클래스를 구현하여 상태 전환 및 확인 로직을 개선함 ([df11d23](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/df11d23775ccd200e8fd8a999463503d92dfaacb))
+* MediapipeManager 클래스를 추가하여 FaceDetectionSDK에서 MediaPipe 관련 로직을 분리하고 초기화 및 결과 처리 방식을 개선함 ([d4522b8](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/d4522b8f7c02fd3e9329c33beb5f9b23fe3559e1))
+
+
+### ♻️ 코드 리팩토링
+
+* 불필요한 공백 제거 ([89b7cc6](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/89b7cc6fa71a92af31a8cfe2c8ac88b8feef1a6e))
+* 불필요한 메서드 및 주석을 제거하여 ConfigManager, EventManager, FacePositionManager, MeasurementManager, MediapipeManager, StateManager, WebcamManager, WorkerManager 클래스를 정리함. 코드 가독성을 개선하고 유지보수를 용이하게 함. ([0264e14](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/0264e14e8cbdb030a1a10b4876f7a4f14d419949))
+* FaceDetectionSDK 및 관련 매니저 클래스를 모듈화하여 코드 구조를 개선하고, 상수 및 타입 정의를 통합하여 가독성을 향상시킴. 새로운 index.ts 파일을 추가하여 매니저 및 유틸리티 함수의 내보내기를 정리함. ([72972f1](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/72972f1b6a0e3b926631b845ea22bff5ab3de825))
+* FaceDetectionSDK 및 관련 매니저 클래스에서 이벤트 기반 구조로 변경하여 코드의 가독성과 유지보수성을 개선함. MeasurementManager, WebcamManager, WorkerManager, StateManager의 이벤트 인터페이스를 도입하고, 상태 변경 및 에러 처리를 효율적으로 관리하도록 수정함. ([6c91335](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/6c9133547ac02b89dcffb802d40c7d987edcc5e6))
+* FaceDetectionSDK 및 StateManager의 상태 변경 콜백 로직을 개선하고, 불필요한 메서드를 제거하여 코드의 가독성과 유지보수성을 향상시킴. 메서드 접근 제어자를 수정하고, 상태 변경 시 이벤트 처리를 통합함. ([cec593c](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/cec593c5641030445cc80aa6f7e75006c6dcc3b4))
+* FaceDetectionSDK 클래스의 구조를 개선하고 상수 및 상태 관리 메서드를 추가하여 코드의 가독성과 유지보수성을 향상시킴. 얼굴 인식 관련 메서드를 정리하고, 초기화 및 상태 전환 로직을 명확히 함. ([a4e7907](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/a4e790748666d20fe25987dc3bcb1d6e5922d99c))
+* FaceDetectionSDK에 WebcamManager, FacePositionManager, WorkerManager 및 MeasurementManager 클래스를 추가하여 웹캠 관리, 얼굴 위치 업데이트, 데이터 측정 및 워커 처리 기능을 개선함. 기존 코드에서 불필요한 부분을 제거하고, 상태 관리 및 에러 처리를 개선함. ([71b6b23](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/71b6b23f6f0b26839c9c26eb97601e38c3ec071c))
+* FaceDetectionSDK의 구조를 개선하고 불필요한 매니저 클래스를 제거하여 코드의 가독성과 유지보수성을 향상시킴. 상태 관리 및 이벤트 처리 로직을 통합하고, MediaPipe 및 웹캠 관련 기능을 직접 처리하도록 수정함. ([826ae02](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/826ae021eeaded0700b80b493681895084a92c66))
+* FaceDetectionSDK의 상태 관리 및 이벤트 처리 로직을 개선하여 코드의 가독성과 유지보수성을 향상시킴. 얼굴 인식 및 측정 시작 메서드를 통합하고, 오류 처리 및 상태 전환 로직을 명확히 함. ([3266d84](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/3266d84eb53550108eef7f648319507f0b3c909a))
+* README 및 예제 코드에서 SDK 초기화 및 측정 시작을 통합하는 메서드 'initializeAndStart'로 변경하여 사용법을 간소화함. 관련 주석 및 로그 메시지를 업데이트함. ([63594ba](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/63594bae194ad346cde3fee7c1aeb7e49d329c36))
+
+
+### 🔧 기타 수정
+
+* README 및 예제 코드에서 메서드 시그니처를 수정하고, 불필요한 메서드를 제거하여 코드의 가독성과 일관성을 향상시킴. 이벤트 콜백의 타입을 개선하고, SDK 초기화 및 상태 관리 메서드를 정리함. ([43b574c](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/43b574c016b50ca2cac0814502e9984b2b07a4ce))
+
 ### [0.1.13](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.4...v0.1.13) (2025-06-13)
 
 
