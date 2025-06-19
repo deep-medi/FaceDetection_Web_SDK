@@ -1,12 +1,17 @@
 import { LastRGB } from '../../types/index.js';
 
+// 워커 이벤트 인터페이스 정의
+export interface WorkerEvents {
+  onDataProcessed: (data: any) => LastRGB;
+}
+
 export class WorkerManager {
   private faceRegionWorker!: Worker;
   private lastRGB!: LastRGB;
-  private onDataProcessed: (data: any) => LastRGB;
+  private events: WorkerEvents;
 
-  constructor(onDataProcessed: (data: any) => LastRGB) {
-    this.onDataProcessed = onDataProcessed;
+  constructor(events: WorkerEvents) {
+    this.events = events;
   }
 
   /**
@@ -27,7 +32,7 @@ export class WorkerManager {
    */
   private setupWorker(): void {
     this.faceRegionWorker.onmessage = ({ data }) => {
-      this.lastRGB = this.onDataProcessed(data);
+      this.lastRGB = this.events.onDataProcessed(data);
     };
   }
 

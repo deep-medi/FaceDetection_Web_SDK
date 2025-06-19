@@ -2,30 +2,26 @@ import { FaceDetectionSDKConfig, MeasurementResult, LastRGB } from '../../types/
 import { createDataString } from '../../utils/dataProcessing.ts';
 import { waitSeconds } from '../../utils/waitSeconds.ts';
 
+// 이벤트 인터페이스 정의
+export interface MeasurementEvents {
+  onProgress: (progress: number, dataLength: number) => void;
+  onMeasurementComplete: (result: MeasurementResult) => void;
+  onDataDownload: (dataString: string) => void;
+  onLog: (msg: string) => void;
+}
+
 export class MeasurementManager {
   private mean_red: number[] = [];
   private mean_green: number[] = [];
   private mean_blue: number[] = [];
   private timingHist: number[] = [];
   private config: FaceDetectionSDKConfig;
-  private onProgress: (progress: number, dataLength: number) => void;
-  private onMeasurementComplete: (result: MeasurementResult) => void;
-  private onDataDownload: (dataString: string) => void;
-  private log: (msg: string) => void;
+  private events: MeasurementEvents;
   private isCompleted: boolean = false;
 
-  constructor(
-    config: FaceDetectionSDKConfig,
-    onProgress: (progress: number, dataLength: number) => void,
-    onMeasurementComplete: (result: MeasurementResult) => void,
-    onDataDownload: (dataString: string) => void,
-    log: (msg: string) => void,
-  ) {
+  constructor(config: FaceDetectionSDKConfig, events: MeasurementEvents) {
     this.config = config;
-    this.onProgress = onProgress;
-    this.onMeasurementComplete = onMeasurementComplete;
-    this.onDataDownload = onDataDownload;
-    this.log = log;
+    this.events = events;
   }
 
   /**
@@ -66,7 +62,7 @@ export class MeasurementManager {
     if (this.timingHist.length > 0) {
       const targetDataPoints = this.config.measurement?.targetDataPoints || 450;
       const progress = Math.min(this.timingHist.length / targetDataPoints, 1.0);
-      this.onProgress(progress, this.timingHist.length);
+      this.events.onProgress(progress, this.timingHist.length);
     }
   }
 
@@ -98,10 +94,10 @@ export class MeasurementManager {
     };
 
     // 측정 완료 콜백 호출
-    this.onMeasurementComplete(measurementResult);
+    this.events.onMeasurementComplete(measurementResult);
 
     // 데이터 다운로드
-    this.onDataDownload(dataString);
+    this.events.onDataDownload(dataString);
   }
 
   /**
@@ -129,7 +125,7 @@ export class MeasurementManager {
 
       // 1초씩 카운트다운
       for (let remaining = delaySeconds; remaining > 0; remaining--) {
-        this.log(`측정 시작까지 ${remaining}초 남았습니다...`);
+        this.events.onLog(`측정 시작까지 ${remaining}초 남았습니다...`);
         await waitSeconds(1);
 
         // 매 초마다 상태 확인 - 상태가 변경되었거나 얼굴이 원을 벗어났다면 중단
@@ -143,7 +139,7 @@ export class MeasurementManager {
         onStateChange('measuring');
       }
     } catch (error) {
-      this.log('Ready to measuring 상태 전환 중 오류: ' + String(error));
+      this.events.onLog('Ready to measuring 상태 전환 중 오류: ' + String(error));
     }
   }
 }

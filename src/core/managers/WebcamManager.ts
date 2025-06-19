@@ -1,16 +1,18 @@
 import { FaceDetectionSDKConfig } from '../../types/index.js';
 
+// 웹캠 이벤트 인터페이스 정의
+export interface WebcamEvents {
+  onWebcamError: (error: Error, isIOS: boolean) => void;
+}
+
 export class WebcamManager {
   private webcamStream: MediaStream | null = null;
   private config: FaceDetectionSDKConfig;
-  private onWebcamError: (error: Error, isIOS: boolean) => void;
+  private events: WebcamEvents;
 
-  constructor(
-    config: FaceDetectionSDKConfig,
-    onWebcamError: (error: Error, isIOS: boolean) => void,
-  ) {
+  constructor(config: FaceDetectionSDKConfig, events: WebcamEvents) {
     this.config = config;
-    this.onWebcamError = onWebcamError;
+    this.events = events;
   }
 
   /**
@@ -50,7 +52,7 @@ export class WebcamManager {
    */
   private handleWebcamError(err: Error): void {
     const isIOS = this.config.platform?.isIOS || false;
-    this.onWebcamError(err, isIOS);
+    this.events.onWebcamError(err, isIOS);
   }
 
   /**

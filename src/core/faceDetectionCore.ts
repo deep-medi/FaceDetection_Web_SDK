@@ -73,16 +73,15 @@ export class FaceDetectionSDK {
     this.eventManager = new EventManager(callbacks);
 
     // StateManager 초기화
-    this.stateManager = new StateManager(this.eventManager);
+    this.stateManager = new StateManager();
 
     // MediapipeManager 초기화
     this.mediapipeManager = new MediapipeManager();
 
     // WebcamManager 초기화
-    this.webcamManager = new WebcamManager(
-      this.configManager.getConfig(),
-      this.handleWebcamError.bind(this),
-    );
+    this.webcamManager = new WebcamManager(this.configManager.getConfig(), {
+      onWebcamError: this.handleWebcamError.bind(this),
+    });
 
     // FacePositionManager 초기화
     this.facePositionManager = new FacePositionManager(
@@ -90,16 +89,22 @@ export class FaceDetectionSDK {
     );
 
     // WorkerManager 초기화
-    this.workerManager = new WorkerManager(this.handleWorkerData.bind(this));
+    this.workerManager = new WorkerManager({
+      onDataProcessed: this.handleWorkerData.bind(this),
+    });
 
     // MeasurementManager 초기화
-    this.measurementManager = new MeasurementManager(
-      this.configManager.getConfig(),
-      this.eventManager.emitProgress.bind(this.eventManager),
-      this.handleMeasurementComplete.bind(this),
-      this.createDownloadFunction(),
-      (msg: string) => this.log(msg),
-    );
+    this.measurementManager = new MeasurementManager(this.configManager.getConfig(), {
+      onProgress: this.eventManager.emitProgress.bind(this.eventManager),
+      onMeasurementComplete: this.handleMeasurementComplete.bind(this),
+      onDataDownload: this.createDownloadFunction(),
+      onLog: (msg: string) => this.log(msg),
+    });
+
+    // StateManager에 EventManager 연결
+    this.stateManager.onStateChange((newState, previousState) => {
+      this.eventManager.emitStateChange(newState, previousState);
+    });
 
     this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
