@@ -189,30 +189,27 @@ await sdk.initializeAndStart();
 
 ```typescript
 // 🚀 초기화 및 시작
-initializeAndStart(autoStartMeasurement?: boolean): Promise<void>
+initializeAndStart(): Promise<void>
 
 // 📊 상태 관리
 getCurrentState(): FaceDetectionState
 isState(state: FaceDetectionState): boolean
-onStateChange(callback: StateChangeCallback): void
-
-// ⚠️ 측정 제어
-stopDetection(): void
-dispose(): void
+isAnyState(...states: FaceDetectionState[]): boolean
 
 // 🔍 상태 확인
 isFaceInsideCircle(): boolean
-canRestart(): boolean
-isInProgress(): boolean
+
+// 🧹 정리
+dispose(): void
 ```
 
 ### 이벤트 콜백
 
 ```typescript
 interface SDKEventCallbacks {
-  onStateChange?: StateChangeCallback;
+  onStateChange?: (newState: FaceDetectionState, previousState: FaceDetectionState) => void;
   onProgress?: (progress: number, dataCount: number) => void;
-  onFaceDetectionChange?: (detected: boolean, boundingBox: any) => void;
+  onFaceDetectionChange?: (detected: boolean, boundingBox: CalculatedBoundingBox | null) => void;
   onFacePositionChange?: (inCircle: boolean) => void;
   onMeasurementComplete?: (result: MeasurementResult) => void;
   onError?: (error: FaceDetectionError) => void;
