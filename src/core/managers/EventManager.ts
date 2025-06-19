@@ -8,9 +8,9 @@ import {
 export class EventManager {
   private stateChangeCallbacks: StateChangeCallback[] = [];
   private callbacks: SDKEventCallbacks = {};
-  private log: (message: string, ...args: any[]) => void;
+  private log?: (message: string, ...args: any[]) => void;
 
-  constructor(callbacks: SDKEventCallbacks = {}, log: (message: string, ...args: any[]) => void) {
+  constructor(callbacks: SDKEventCallbacks = {}, log?: (message: string, ...args: any[]) => void) {
     this.callbacks = callbacks;
     this.log = log;
 
@@ -55,7 +55,11 @@ export class EventManager {
    */
   public emitError(error: Error, context?: string): void {
     const errorMessage = context ? `${context}: ${error.message}` : error.message;
-    this.log(`오류 발생: ${errorMessage}`, error);
+
+    // 로그가 있을 때만 출력 (중복 방지)
+    if (this.log) {
+      this.log(`오류 발생: ${errorMessage}`, error);
+    }
 
     if (this.callbacks.onError) {
       this.callbacks.onError({
