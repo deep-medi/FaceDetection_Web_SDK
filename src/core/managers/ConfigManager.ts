@@ -39,13 +39,4 @@ export class ConfigManager {
   public getConfig(): Required<FaceDetectionSDKConfig> {
     return this.config;
   }
-
-  /**
-   * 특정 설정 값을 반환합니다.
-   */
-  public getConfigValue<K extends keyof Required<FaceDetectionSDKConfig>>(
-    key: K,
-  ): Required<FaceDetectionSDKConfig>[K] {
-    return this.config[key];
-  }
 }

@@ -1,13 +1,10 @@
 import { FaceDetectionState, StateChangeCallback } from '../../types/index.js';
-import { EventManager } from './EventManager.js';
 
 export class StateManager {
   private currentState: FaceDetectionState = FaceDetectionState.INITIAL;
-  private eventManager: EventManager;
+  private stateChangeCallbacks: StateChangeCallback[] = [];
 
-  constructor(eventManager: EventManager) {
-    this.eventManager = eventManager;
-  }
+  constructor() {}
 
   /**
    * 현재 상태를 반환합니다.
@@ -17,26 +14,42 @@ export class StateManager {
   }
 
   /**
-   * 상태를 변경하고 콜백을 호출합니다.
+   * 상태를 변경하고 이벤트를 발생시킵니다.
    */
   public setState(newState: FaceDetectionState): void {
     const previousState = this.currentState;
     this.currentState = newState;
-    this.eventManager.emitStateChange(newState, previousState);
+    this.emitStateChange(newState, previousState);
   }
 
   /**
    * 상태 변경 콜백을 등록합니다.
    */
   public onStateChange(callback: StateChangeCallback): void {
-    this.eventManager.onStateChange(callback);
+    this.stateChangeCallbacks.push(callback);
   }
 
   /**
    * 상태 변경 콜백을 제거합니다.
    */
   public removeStateChangeCallback(callback: StateChangeCallback): void {
-    this.eventManager.removeStateChangeCallback(callback);
+    const index = this.stateChangeCallbacks.indexOf(callback);
+    if (index > -1) {
+      this.stateChangeCallbacks.splice(index, 1);
+    }
+  }
+
+  /**
+   * 상태 변경 이벤트를 발생시킵니다.
+   */
+  private emitStateChange(newState: FaceDetectionState, previousState: FaceDetectionState): void {
+    this.stateChangeCallbacks.forEach((callback) => {
+      try {
+        callback(newState, previousState);
+      } catch (error) {
+        console.error('상태 변경 콜백 실행 중 오류:', error);
+      }
+    });
   }
 
   /**

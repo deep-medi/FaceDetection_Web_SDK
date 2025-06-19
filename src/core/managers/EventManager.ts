@@ -8,9 +8,9 @@ import {
 export class EventManager {
   private stateChangeCallbacks: StateChangeCallback[] = [];
   private callbacks: SDKEventCallbacks = {};
-  private log: (message: string, ...args: any[]) => void;
+  private log?: (message: string, ...args: any[]) => void;
 
-  constructor(callbacks: SDKEventCallbacks = {}, log: (message: string, ...args: any[]) => void) {
+  constructor(callbacks: SDKEventCallbacks = {}, log?: (message: string, ...args: any[]) => void) {
     this.callbacks = callbacks;
     this.log = log;
 
@@ -55,7 +55,11 @@ export class EventManager {
    */
   public emitError(error: Error, context?: string): void {
     const errorMessage = context ? `${context}: ${error.message}` : error.message;
-    this.log(`오류 발생: ${errorMessage}`, error);
+
+    // 로그가 있을 때만 출력 (중복 방지)
+    if (this.log) {
+      this.log(`오류 발생: ${errorMessage}`, error);
+    }
 
     if (this.callbacks.onError) {
       this.callbacks.onError({
@@ -70,20 +74,19 @@ export class EventManager {
    * 웹캠 에러 이벤트를 발생시킵니다.
    */
   public emitWebcamError(err: Error, isIOS: boolean): void {
-    let errorType: FaceDetectionErrorType;
-    let errorMessage: string;
-
-    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      errorType = FaceDetectionErrorType.WEBCAM_PERMISSION_DENIED;
-      errorMessage =
-        '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.';
-    } else if (
+    const isPermissionError =
+      err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError';
+    const isIOSPermissionError =
       isIOS &&
       err.message &&
       (err.message.includes('permission') ||
         err.message.includes('허가') ||
-        err.message.includes('권한'))
-    ) {
+        err.message.includes('권한'));
+
+    let errorType: FaceDetectionErrorType;
+    let errorMessage: string;
+
+    if (isPermissionError || isIOSPermissionError) {
       errorType = FaceDetectionErrorType.WEBCAM_PERMISSION_DENIED;
       errorMessage =
         '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.';
