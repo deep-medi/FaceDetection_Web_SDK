@@ -6,10 +6,7 @@
  */
 
 // SDK를 import합니다
-import { FaceDetectionSDK, SDK_VERSION } from 'face-detection-web-sdk';
-
-// SDK 버전 정보 출력
-console.log(`사용 중인 버전: v${SDK_VERSION}`);
+import { FaceDetectionSDK } from 'face-detection-web-sdk';
 
 /**
  * 1. 디바이스 감지
@@ -170,20 +167,12 @@ const faceDetectionSDK = new FaceDetectionSDK(sdkConfig, sdkCallbacks);
  */
 async function initializeAndStart() {
   try {
-    console.log('[Demo] SDK 초기화 시작...');
+    console.log('[Demo] SDK 초기화 및 측정 시작...');
     updateGuideText('초기화 중...');
 
-    // 요소 초기화
-    await faceDetectionSDK.initializeElements();
-    console.log('[Demo] HTML 요소 초기화 완료');
-
-    // SDK 초기화 (MediaPipe, 워커 등)
-    await faceDetectionSDK.initialize();
-    console.log('[Demo] SDK 초기화 완료');
-
-    // 측정 시작
-    await faceDetectionSDK.startMeasurement();
-    console.log('[Demo] 측정 시작 완료');
+    // SDK 완전 초기화 및 측정 시작 (한 번에 처리)
+    await faceDetectionSDK.initializeAndStart();
+    console.log('[Demo] SDK 초기화 및 측정 시작 완료');
   } catch (error) {
     console.error('[Demo] 초기화 실패:', error);
     updateGuideText('초기화 실패. 새로고침해 주세요.');
@@ -227,8 +216,7 @@ window.faceDetectionSDK = faceDetectionSDK;
 
 // 개발자 도구에서 사용할 수 있는 함수들
 window.debugFunctions = {
-  startMeasurement: () => faceDetectionSDK.startMeasurement(),
-  stopMeasurement: () => faceDetectionSDK.stopMeasurement(),
   getState: () => faceDetectionSDK.getCurrentState(),
+  isFaceInCircle: () => faceDetectionSDK.isFaceInsideCircle(),
   dispose: cleanup,
 };

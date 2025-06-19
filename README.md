@@ -108,10 +108,9 @@ const callbacks = {
   },
 };
 
-// 3. 초기화 및 시작
+// 3. 초기화 및 시작 (한 번에 처리)
 const sdk = new FaceDetectionSDK(config, callbacks);
-await sdk.initialize();
-await sdk.startMeasurement();
+await sdk.initializeAndStart();
 ```
 
 ## 💡 사용법
@@ -145,7 +144,7 @@ await sdk.startMeasurement();
 ```typescript
 import { FaceDetectionSDK, FaceDetectionState } from './faceDetectionCore';
 
-// SDK 초기화
+// SDK 초기화 및 설정
 const sdk = new FaceDetectionSDK(
   {
     measurement: {
@@ -169,12 +168,8 @@ const sdk = new FaceDetectionSDK(
   },
 );
 
-// HTML 요소 설정 후 초기화
-await sdk.initializeElements();
-await sdk.initialize();
-
-// 측정 시작
-await sdk.startMeasurement();
+// 한 번에 초기화 및 측정 시작
+await sdk.initializeAndStart();
 ```
 
 ## 📊 측정 알고리즘
@@ -193,29 +188,28 @@ await sdk.startMeasurement();
 ### 주요 메서드
 
 ```typescript
-// 상태 관리
+// 🚀 초기화 및 시작
+initializeAndStart(): Promise<void>
+
+// 📊 상태 관리
 getCurrentState(): FaceDetectionState
 isState(state: FaceDetectionState): boolean
-onStateChange(callback: StateChangeCallback): void
+isAnyState(...states: FaceDetectionState[]): boolean
 
-// 측정 제어
-startMeasurement(): Promise<void>
-stopDetection(): void
-dispose(): void
-
-// 상태 확인
+// 🔍 상태 확인
 isFaceInsideCircle(): boolean
-canRestart(): boolean
-isInProgress(): boolean
+
+// 🧹 정리
+dispose(): void
 ```
 
 ### 이벤트 콜백
 
 ```typescript
 interface SDKEventCallbacks {
-  onStateChange?: StateChangeCallback;
+  onStateChange?: (newState: FaceDetectionState, previousState: FaceDetectionState) => void;
   onProgress?: (progress: number, dataCount: number) => void;
-  onFaceDetectionChange?: (detected: boolean, boundingBox: any) => void;
+  onFaceDetectionChange?: (detected: boolean, boundingBox: CalculatedBoundingBox | null) => void;
   onFacePositionChange?: (inCircle: boolean) => void;
   onMeasurementComplete?: (result: MeasurementResult) => void;
   onError?: (error: FaceDetectionError) => void;
