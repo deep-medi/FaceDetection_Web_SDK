@@ -6,10 +6,7 @@
  */
 
 // SDK를 import합니다
-import { FaceDetectionSDK, SDK_VERSION } from 'face-detection-web-sdk';
-
-// SDK 버전 정보 출력
-console.log(`사용 중인 버전: v${SDK_VERSION}`);
+import { FaceDetectionSDK } from 'face-detection-web-sdk';
 
 /**
  * 1. 디바이스 감지
@@ -219,8 +216,7 @@ window.faceDetectionSDK = faceDetectionSDK;
 
 // 개발자 도구에서 사용할 수 있는 함수들
 window.debugFunctions = {
-  startMeasurement: () => faceDetectionSDK.startMeasurement(),
-  stopMeasurement: () => faceDetectionSDK.stopMeasurement(),
   getState: () => faceDetectionSDK.getCurrentState(),
+  isFaceInCircle: () => faceDetectionSDK.isFaceInsideCircle(),
   dispose: cleanup,
 };

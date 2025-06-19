@@ -2,7 +2,7 @@ import { FaceDetectionState, StateChangeCallback } from '../../types/index.js';
 
 export class StateManager {
   private currentState: FaceDetectionState = FaceDetectionState.INITIAL;
-  private stateChangeCallbacks: StateChangeCallback[] = [];
+  private stateChangeCallback?: StateChangeCallback;
 
   constructor() {}
 
@@ -11,6 +11,13 @@ export class StateManager {
    */
   public getCurrentState(): FaceDetectionState {
     return this.currentState;
+  }
+
+  /**
+   * 상태 변경 콜백을 설정합니다.
+   */
+  public setStateChangeCallback(callback: StateChangeCallback): void {
+    this.stateChangeCallback = callback;
   }
 
   /**
@@ -23,33 +30,16 @@ export class StateManager {
   }
 
   /**
-   * 상태 변경 콜백을 등록합니다.
-   */
-  public onStateChange(callback: StateChangeCallback): void {
-    this.stateChangeCallbacks.push(callback);
-  }
-
-  /**
-   * 상태 변경 콜백을 제거합니다.
-   */
-  public removeStateChangeCallback(callback: StateChangeCallback): void {
-    const index = this.stateChangeCallbacks.indexOf(callback);
-    if (index > -1) {
-      this.stateChangeCallbacks.splice(index, 1);
-    }
-  }
-
-  /**
    * 상태 변경 이벤트를 발생시킵니다.
    */
   private emitStateChange(newState: FaceDetectionState, previousState: FaceDetectionState): void {
-    this.stateChangeCallbacks.forEach((callback) => {
+    if (this.stateChangeCallback) {
       try {
-        callback(newState, previousState);
+        this.stateChangeCallback(newState, previousState);
       } catch (error) {
         console.error('상태 변경 콜백 실행 중 오류:', error);
       }
-    });
+    }
   }
 
   /**
