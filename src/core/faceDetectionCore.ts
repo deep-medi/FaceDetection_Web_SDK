@@ -1,9 +1,9 @@
 // 외부 라이브러리 및 모듈 임포트
-
-import { processResults } from '../utils/faceDetectionProcessor.ts';
-import { processFaceRegionData } from '../utils/faceRegionWorker.ts';
-import { handleDataDownload } from '../utils/downloadUtils.ts';
 import {
+  Managers,
+  processResults,
+  processFaceRegionData,
+  handleDataDownload,
   CalculatedBoundingBox,
   Detection,
   LastRGB,
@@ -12,15 +12,7 @@ import {
   StateChangeCallback,
   MeasurementResult,
   SDKEventCallbacks,
-} from '../types/index.js';
-import { ConfigManager } from './managers/ConfigManager.js';
-import { EventManager } from './managers/EventManager.js';
-import { MediapipeManager } from './managers/MediapipeManager.js';
-import { StateManager } from './managers/StateManager.js';
-import { WebcamManager } from './managers/WebcamManager.js';
-import { FacePositionManager } from './managers/FacePositionManager.js';
-import { WorkerManager } from './managers/WorkerManager.js';
-import { MeasurementManager } from './managers/MeasurementManager.js';
+} from './index';
 import packageJson from '../../package.json';
 
 // 상수 정의
@@ -39,14 +31,14 @@ export class FaceDetectionSDK {
   public static readonly VERSION = packageJson.version;
 
   // Manager 인스턴스들
-  private readonly configManager: ConfigManager;
-  private readonly eventManager: EventManager;
-  private readonly mediapipeManager: MediapipeManager;
-  private readonly stateManager: StateManager;
-  private readonly webcamManager: WebcamManager;
-  private readonly facePositionManager: FacePositionManager;
-  private readonly workerManager: WorkerManager;
-  private readonly measurementManager: MeasurementManager;
+  private readonly configManager: Managers.ConfigManager;
+  private readonly eventManager: Managers.EventManager;
+  private readonly mediapipeManager: Managers.MediapipeManager;
+  private readonly stateManager: Managers.StateManager;
+  private readonly webcamManager: Managers.WebcamManager;
+  private readonly facePositionManager: Managers.FacePositionManager;
+  private readonly workerManager: Managers.WorkerManager;
+  private readonly measurementManager: Managers.MeasurementManager;
 
   // 상태 플래그들
   private isFaceDetectiveActive = false;
@@ -74,24 +66,24 @@ export class FaceDetectionSDK {
    * @param callbacks 이벤트 콜백 객체
    */
   constructor(config: FaceDetectionSDKConfig = {}, callbacks: SDKEventCallbacks = {}) {
-    this.configManager = new ConfigManager(config);
-    this.eventManager = new EventManager(callbacks);
-    this.stateManager = new StateManager();
-    this.mediapipeManager = new MediapipeManager();
+    this.configManager = new Managers.ConfigManager(config);
+    this.eventManager = new Managers.EventManager(callbacks);
+    this.stateManager = new Managers.StateManager();
+    this.mediapipeManager = new Managers.MediapipeManager();
 
-    this.webcamManager = new WebcamManager(this.configManager.getConfig(), {
+    this.webcamManager = new Managers.WebcamManager(this.configManager.getConfig(), {
       onWebcamError: this.handleWebcamError.bind(this),
     });
 
-    this.facePositionManager = new FacePositionManager(
+    this.facePositionManager = new Managers.FacePositionManager(
       this.configManager.getConfig().errorBounding || DEFAULT_ERROR_BOUNDING,
     );
 
-    this.workerManager = new WorkerManager({
+    this.workerManager = new Managers.WorkerManager({
       onDataProcessed: this.handleWorkerData.bind(this),
     });
 
-    this.measurementManager = new MeasurementManager(this.configManager.getConfig(), {
+    this.measurementManager = new Managers.MeasurementManager(this.configManager.getConfig(), {
       onProgress: this.eventManager.emitProgress.bind(this.eventManager),
       onMeasurementComplete: this.handleMeasurementComplete.bind(this),
       onDataDownload: this.createDownloadFunction(),
