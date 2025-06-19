@@ -1,9 +1,6 @@
 // ===== Core Exports =====
 export { FaceDetectionSDK } from './faceDetectionCore';
 
-// ===== Manager Exports =====
-export * as Managers from './managers';
-
 // ===== Type Exports =====
 export type {
   CalculatedBoundingBox,
