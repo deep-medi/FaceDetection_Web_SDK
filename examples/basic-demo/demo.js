@@ -170,20 +170,12 @@ const faceDetectionSDK = new FaceDetectionSDK(sdkConfig, sdkCallbacks);
  */
 async function initializeAndStart() {
   try {
-    console.log('[Demo] SDK 초기화 시작...');
+    console.log('[Demo] SDK 초기화 및 측정 시작...');
     updateGuideText('초기화 중...');
 
-    // 요소 초기화
-    await faceDetectionSDK.initializeElements();
-    console.log('[Demo] HTML 요소 초기화 완료');
-
-    // SDK 초기화 (MediaPipe, 워커 등)
-    await faceDetectionSDK.initialize();
-    console.log('[Demo] SDK 초기화 완료');
-
-    // 측정 시작
-    await faceDetectionSDK.startMeasurement();
-    console.log('[Demo] 측정 시작 완료');
+    // SDK 완전 초기화 및 측정 시작 (한 번에 처리)
+    await faceDetectionSDK.initializeAndStart();
+    console.log('[Demo] SDK 초기화 및 측정 시작 완료');
   } catch (error) {
     console.error('[Demo] 초기화 실패:', error);
     updateGuideText('초기화 실패. 새로고침해 주세요.');

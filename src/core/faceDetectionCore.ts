@@ -42,7 +42,6 @@ export class FaceDetectionSDK {
   private isFaceInCircle: boolean = false;
   private isReadyTransitionStarted: boolean = false;
   private isInitialized: boolean = false;
-  private isElementsInitialized: boolean = false;
 
   // HTML 요소들
   private video!: HTMLVideoElement;
@@ -66,36 +65,22 @@ export class FaceDetectionSDK {
    * @param callbacks 이벤트 콜백 객체
    */
   constructor(config: FaceDetectionSDKConfig = {}, callbacks: SDKEventCallbacks = {}) {
-    // ConfigManager 초기화
-    this.configManager = new ConfigManager(config);
-
-    // EventManager 초기화 (로그 콜백 제거하여 중복 방지)
-    this.eventManager = new EventManager(callbacks);
-
-    // StateManager 초기화
-    this.stateManager = new StateManager();
-
-    // MediapipeManager 초기화
-    this.mediapipeManager = new MediapipeManager();
-
-    // WebcamManager 초기화
+    this.configManager = new ConfigManager(config); // ConfigManager 초기화
+    this.eventManager = new EventManager(callbacks); // EventManager 초기화 (로그 콜백 제거하여 중복 방지)
+    this.stateManager = new StateManager(); // StateManager 초기화
+    this.mediapipeManager = new MediapipeManager(); // MediapipeManager 초기화
     this.webcamManager = new WebcamManager(this.configManager.getConfig(), {
+      // WebcamManager 초기화
       onWebcamError: this.handleWebcamError.bind(this),
     });
-
-    // FacePositionManager 초기화
     this.facePositionManager = new FacePositionManager(
       this.configManager.getConfig().errorBounding || 4,
-    );
-
-    // WorkerManager 초기화
+    ); // FacePositionManager 초기화
     this.workerManager = new WorkerManager({
-      onDataProcessed: this.handleWorkerData.bind(this),
+      onDataProcessed: this.handleWorkerData.bind(this), // WorkerManager 초기화
     });
-
-    // MeasurementManager 초기화
     this.measurementManager = new MeasurementManager(this.configManager.getConfig(), {
-      onProgress: this.eventManager.emitProgress.bind(this.eventManager),
+      onProgress: this.eventManager.emitProgress.bind(this.eventManager), // MeasurementManager 초기화
       onMeasurementComplete: this.handleMeasurementComplete.bind(this),
       onDataDownload: this.createDownloadFunction(),
       onLog: (msg: string) => this.log(msg),
@@ -105,48 +90,30 @@ export class FaceDetectionSDK {
     this.stateManager.onStateChange((newState, previousState) => {
       this.eventManager.emitStateChange(newState, previousState);
     });
-
     this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
 
   /**
-   * SDK 초기화
-   * HTML 요소들을 생성하고 MediaPipe를 설정합니다.
+   * SDK 완전 초기화 및 측정 시작
+   * HTML 요소 초기화, MediaPipe 설정, 워커 초기화, 측정 시작을 한 번에 수행합니다.
    */
-  public async initialize(): Promise<void> {
-    if (this.isInitialized) {
-      return;
-    }
-
+  public async initializeAndStart(): Promise<void> {
     try {
-      this.log('SDK 초기화를 시작합니다...');
-
-      // MediaPipe 초기화
-      await this.initializeMediaPipe();
-
-      // 워커 초기화
-      this.workerManager.initialize();
-
-      this.isInitialized = true;
-      this.log('SDK 초기화가 완료되었습니다.');
+      this.log('SDK 완전 초기화를 시작합니다...');
+      await this.initializeElements(); // HTML 요소 초기화
+      if (!this.isInitialized) {
+        this.log('SDK 초기화를 시작합니다...');
+        await this.initializeMediaPipe(); // MediaPipe 초기화
+        this.workerManager.initialize();
+        this.isInitialized = true;
+        this.log('SDK 초기화가 완료되었습니다.');
+      }
+      await this.handleClickStart(); // 측정 시작
+      this.log('SDK 초기화 및 측정 시작이 완료되었습니다.');
     } catch (error) {
-      this.handleError(error as Error, 'SDK 초기화 중 오류가 발생했습니다.');
+      this.handleError(error as Error, 'SDK 완전 초기화 중 오류가 발생했습니다.');
       throw error;
     }
-  }
-
-  /**
-   * 측정 시작
-   */
-  public async startMeasurement(): Promise<void> {
-    if (!this.isElementsInitialized) {
-      throw new Error('HTML 요소가 초기화되지 않았습니다. initializeElements()를 먼저 호출하세요.');
-    }
-    if (!this.isInitialized) {
-      throw new Error('SDK가 초기화되지 않았습니다. initialize()를 먼저 호출하세요.');
-    }
-
-    await this.handleClickStart();
   }
 
   /**
@@ -155,23 +122,11 @@ export class FaceDetectionSDK {
    */
   public dispose(): void {
     this.stopDetection();
-
-    // 워커 종료
-    this.workerManager.terminate();
-
-    // 웹캠 정리
-    this.webcamManager.dispose();
-
-    // MediapipeManager 정리
-    this.mediapipeManager.dispose();
-
-    // 이벤트 매니저 정리
-    this.eventManager.dispose();
-
-    // 상태 초기화
-    this.isInitialized = false;
-    this.isElementsInitialized = false;
-
+    this.workerManager.terminate(); // 워커 종료
+    this.webcamManager.dispose(); // 웹캠 종료
+    this.mediapipeManager.dispose(); // MediapipeManager 정리
+    this.eventManager.dispose(); // EventManager 정리
+    this.isInitialized = false; // 상태 초기화
     this.log('SDK가 정리되었습니다.');
   }
 
@@ -390,7 +345,6 @@ export class FaceDetectionSDK {
 
     this.isFaceDetectiveActive = false;
     this.webcamManager.stopWebcam();
-
     this.workerManager.terminate();
 
     if (this.faceDetectionTimer) {
@@ -537,8 +491,6 @@ export class FaceDetectionSDK {
     const ctx = this.canvasElement.getContext('2d', { willReadFrequently: true });
     if (!ctx) throw new Error('Canvas context를 가져올 수 없습니다.');
     this.ctx = ctx;
-
-    this.isElementsInitialized = true;
   }
 
   /**
