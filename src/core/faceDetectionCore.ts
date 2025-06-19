@@ -9,7 +9,6 @@ import {
   LastRGB,
   FaceDetectionSDKConfig,
   FaceDetectionState,
-  StateChangeCallback,
   MeasurementResult,
   SDKEventCallbacks,
 } from './index';
@@ -90,9 +89,11 @@ export class FaceDetectionSDK {
       onLog: (msg: string) => this.log(msg),
     });
 
-    this.stateManager.onStateChange((newState, previousState) => {
+    // 상태 변경 시 EventManager를 통해 콜백 호출
+    this.stateManager.setStateChangeCallback((newState, previousState) => {
       this.eventManager.emitStateChange(newState, previousState);
     });
+
     this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
 
@@ -252,7 +253,7 @@ export class FaceDetectionSDK {
   }
 
   // 얼굴 측정 시작
-  public async handleClickStart(): Promise<void> {
+  private async handleClickStart(): Promise<void> {
     try {
       this.isFaceDetectiveActive = true;
       this.isFaceDetected = false;
@@ -328,7 +329,7 @@ export class FaceDetectionSDK {
   }
 
   // 얼굴 인식 종료 시 처리
-  public stopDetection(): void {
+  private stopDetection(): void {
     if (!this.isFaceDetectiveActive) return;
 
     this.isFaceDetectiveActive = false;
@@ -347,16 +348,6 @@ export class FaceDetectionSDK {
     return this.stateManager.getCurrentState();
   }
 
-  // 상태 변경 콜백을 등록
-  public onStateChange(callback: StateChangeCallback): void {
-    this.stateManager.onStateChange(callback);
-  }
-
-  // 상태 변경 콜백을 제거
-  public removeStateChangeCallback(callback: StateChangeCallback): void {
-    this.stateManager.removeStateChangeCallback(callback);
-  }
-
   // 특정 상태인지 확인
   public isState(state: FaceDetectionState): boolean {
     return this.stateManager.isState(state);
@@ -372,15 +363,10 @@ export class FaceDetectionSDK {
     return this.isFaceInCircle;
   }
 
-  // SDK 버전 정보를 반환
-  public getVersion(): string {
-    return FaceDetectionSDK.VERSION;
-  }
-
   // ===== 초기화 메서드들 =====
 
   // HTML 요소들 초기화
-  public async initializeElements(): Promise<void> {
+  private async initializeElements(): Promise<void> {
     const config = this.configManager.getConfig();
 
     if (!config.elements) {
