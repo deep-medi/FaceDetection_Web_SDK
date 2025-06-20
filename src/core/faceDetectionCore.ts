@@ -101,10 +101,7 @@ export class FaceDetectionSDK {
     this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
 
-  /**
-   * SDK 완전 초기화 및 측정 시작
-   * HTML 요소 초기화, MediaPipe 설정, 워커 초기화, 측정 시작을 한 번에 수행합니다.
-   */
+  // SDK 완전 초기화 및 측정 시작
   public async initializeAndStart(): Promise<void> {
     try {
       this.log('SDK 완전 초기화를 시작합니다...');
@@ -129,10 +126,7 @@ export class FaceDetectionSDK {
     }
   }
 
-  /**
-   * SDK 정리
-   * 리소스를 해제하고 이벤트 리스너를 제거합니다.
-   */
+  // SDK 정리
   public dispose(): void {
     this.stopDetection();
     this.workerManager.terminate();
@@ -290,51 +284,76 @@ export class FaceDetectionSDK {
   // 얼굴 측정 시작
   private async handleClickStart(): Promise<void> {
     try {
-      this.isFaceDetectiveActive = true;
-      this.isFaceDetected = false;
-      this.isFirstFrame = true;
-      this.isFaceInCircle = false;
-      this.isReadyTransitionStarted = false;
+      await this.initializeDetectionState();
       const webcamStream = await this.webcamManager.startWebcam();
-      this.video.srcObject = webcamStream;
-      this.video.play();
-      this.video.addEventListener('loadeddata', () => {
-        let lastFrameTime = 0;
-        let frameCount = 0;
-        const processVideo = async (): Promise<void> => {
-          if (!this.isFaceDetectiveActive || this.video.readyState < VIDEO_READY_STATE) return;
-          const now = performance.now();
-          const elapsed = now - lastFrameTime;
-          const frameInterval =
-            this.configManager.getConfig().measurement?.frameInterval || DEFAULT_FRAME_INTERVAL;
-          if (elapsed > frameInterval) {
-            lastFrameTime = now - (elapsed % frameInterval);
-            frameCount++;
-            this.videoCtx.drawImage(
-              this.video,
-              0,
-              0,
-              this.videoCanvas.width,
-              this.videoCanvas.height,
-            );
-            const frameProcessInterval =
-              this.configManager.getConfig().measurement?.frameProcessInterval ||
-              DEFAULT_FRAME_PROCESS_INTERVAL;
-            if (frameCount % frameProcessInterval === 0) {
-              await this.mediapipeManager.sendImage(this.video);
-            } else if (this.lastBoundingBox && this.isFaceInCircle) {
-              const { left, top, width, height } = this.lastBoundingBox;
-              const faceRegion = this.videoCtx.getImageData(left, top, width, height);
-              this.workerManager.postFaceRegionData(faceRegion);
-            }
-          }
-          requestAnimationFrame(processVideo);
-        };
-        requestAnimationFrame(processVideo);
-      });
+      await this.setupVideoStream(webcamStream);
+      this.startVideoProcessing();
     } catch (err) {
       this.handleWebcamError(err as Error);
     }
+  }
+
+  // 얼굴 인식 상태 초기화
+  private async initializeDetectionState(): Promise<void> {
+    this.isFaceDetectiveActive = true;
+    this.isFaceDetected = false;
+    this.isFirstFrame = true;
+    this.isFaceInCircle = false;
+    this.isReadyTransitionStarted = false;
+  }
+
+  // 비디오 스트림 설정
+  private async setupVideoStream(webcamStream: MediaStream): Promise<void> {
+    this.video.srcObject = webcamStream;
+    this.video.play();
+  }
+
+  // 비디오 처리 시작
+  private startVideoProcessing(): void {
+    this.video.addEventListener('loadeddata', () => {
+      this.initializeVideoProcessor();
+    });
+  }
+
+  // 비디오 프로세서 초기화 및 프레임 처리 루프 시작
+  private initializeVideoProcessor(): void {
+    let lastFrameTime = 0;
+    let frameCount = 0;
+
+    const processVideo = async (): Promise<void> => {
+      if (!this.isFaceDetectiveActive || this.video.readyState < VIDEO_READY_STATE) return;
+
+      const now = performance.now();
+      const elapsed = now - lastFrameTime;
+      const frameInterval =
+        this.configManager.getConfig().measurement?.frameInterval || DEFAULT_FRAME_INTERVAL;
+
+      if (elapsed > frameInterval) {
+        lastFrameTime = now - (elapsed % frameInterval);
+        frameCount++;
+
+        // 비디오 프레임을 캔버스에 그리기
+        this.videoCtx.drawImage(this.video, 0, 0, this.videoCanvas.width, this.videoCanvas.height);
+
+        // 프레임 데이터 처리
+        const frameProcessInterval =
+          this.configManager.getConfig().measurement?.frameProcessInterval ||
+          DEFAULT_FRAME_PROCESS_INTERVAL;
+
+        if (frameCount % frameProcessInterval === 0) {
+          await this.mediapipeManager.sendImage(this.video);
+        } else if (this.lastBoundingBox !== null && this.isFaceInCircle) {
+          // 얼굴 영역 데이터 처리
+          const { left, top, width, height } = this.lastBoundingBox;
+          const faceRegion = this.videoCtx.getImageData(left, top, width, height);
+          this.workerManager.postFaceRegionData(faceRegion);
+        }
+      }
+
+      requestAnimationFrame(processVideo);
+    };
+
+    requestAnimationFrame(processVideo);
   }
 
   // 웹캠 에러 처리
