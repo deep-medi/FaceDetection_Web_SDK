@@ -62,10 +62,10 @@ export class MeasurementManager {
     // 측정 결과 생성
     const measurementResult: MeasurementResult = {
       rawData: {
-        sigR: [...this.red],
-        sigG: [...this.green],
-        sigB: [...this.blue],
-        timestamp: [...this.timestamps],
+        sigR: this.red,
+        sigG: this.green,
+        sigB: this.blue,
+        timestamp: this.timestamps,
       },
       quality: {
         positionError: 0, // FacePositionManager에서 가져와야 함
