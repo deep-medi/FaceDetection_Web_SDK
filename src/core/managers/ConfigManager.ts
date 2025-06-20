@@ -15,22 +15,18 @@ export class ConfigManager {
     defaultConfig: Omit<Required<FaceDetectionSDKConfig>, 'elements'>,
     userConfig: FaceDetectionSDKConfig,
   ): Required<FaceDetectionSDKConfig> {
-    const merged = JSON.parse(JSON.stringify(defaultConfig)) as any;
+    const merged = structuredClone(defaultConfig) as any;
 
-    Object.keys(userConfig).forEach((key) => {
-      const userValue = userConfig[key as keyof FaceDetectionSDKConfig];
-      if (userValue !== undefined) {
-        if (key === 'elements') {
-          merged[key] = userValue;
-        } else if (typeof userValue === 'object' && !Array.isArray(userValue)) {
-          merged[key] = { ...merged[key], ...userValue };
-        } else {
-          merged[key] = userValue;
-        }
-      }
-    });
-
-    return merged;
+    return Object.entries(userConfig).reduce((acc, [key, value]) => {
+      if (value === undefined) return acc;
+      acc[key] =
+        key === 'elements'
+          ? value
+          : typeof value === 'object' && !Array.isArray(value)
+            ? { ...acc[key], ...value }
+            : value;
+      return acc;
+    }, merged);
   }
 
   /**
