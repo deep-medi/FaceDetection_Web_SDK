@@ -47,9 +47,7 @@ export class WorkerManager {
    * 워커를 종료합니다.
    */
   public terminate(): void {
-    if (this.faceRegionWorker) {
-      this.faceRegionWorker.terminate();
-    }
+    this.faceRegionWorker?.terminate();
   }
 
   /**

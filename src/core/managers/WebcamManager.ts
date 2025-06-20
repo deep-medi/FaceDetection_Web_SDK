@@ -41,10 +41,8 @@ export class WebcamManager {
    * 웹캠 스트림을 중지합니다.
    */
   public stopWebcam(): void {
-    if (this.webcamStream) {
-      this.webcamStream.getTracks().forEach((track) => track.stop());
-      this.webcamStream = null;
-    }
+    this.webcamStream?.getTracks().forEach((track) => track.stop());
+    this.webcamStream = null;
   }
 
   /**

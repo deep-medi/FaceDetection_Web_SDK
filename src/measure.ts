@@ -40,7 +40,7 @@ const sdkConfig: FaceDetectionSDKConfig = {
     container,
   },
   measurement: {
-    readyToMeasuringDelay: 5,
+    readyToMeasuringDelay: 3,
   },
 };
 
@@ -69,10 +69,6 @@ const sdkCallbacks: SDKEventCallbacks = {
 
   onError: (error) => {
     console.error('[SDK Demo] 오류 발생:', error.type, error.message);
-
-    if (error.originalError) {
-      console.error('[SDK Demo] 원본 오류:', error.originalError);
-    }
   },
   onFacePositionChange: (isInCircle) => {
     if (!isInCircle) {
@@ -80,6 +76,9 @@ const sdkCallbacks: SDKEventCallbacks = {
     } else {
       container.style.border = '8px solid green';
     }
+  },
+  onCountdown: (remainingSeconds) => {
+    console.log(`[SDK Demo] 카운트다운: ${remainingSeconds}초 남았습니다...`);
   },
 };
 

@@ -206,7 +206,6 @@ export enum FaceDetectionErrorType {
 export interface FaceDetectionError {
   type: FaceDetectionErrorType;
   message: string;
-  originalError?: Error;
 }
 
 /**
@@ -252,4 +251,6 @@ export interface SDKEventCallbacks {
   onFaceDetectionChange?: (detected: boolean, boundingBox: CalculatedBoundingBox | null) => void;
   /** 얼굴이 원 안에 있는지 여부 변경 시 호출 */
   onFacePositionChange?: (isInCircle: boolean) => void;
+  /** 카운트다운 업데이트 시 호출 */
+  onCountdown?: (remainingSeconds: number, totalSeconds: number) => void;
 }

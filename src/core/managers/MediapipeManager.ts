@@ -44,9 +44,7 @@ export class MediapipeManager {
    * MediaPipe 리소스를 정리합니다.
    */
   public dispose(): void {
-    if (this.faceDetection) {
-      this.faceDetection = null;
-    }
+    this.faceDetection = null;
     this.onResultsCallback = null;
   }
 }

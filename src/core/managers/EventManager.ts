@@ -13,11 +13,7 @@ export class EventManager {
   constructor(callbacks: SDKEventCallbacks = {}, log?: (message: string, ...args: any[]) => void) {
     this.callbacks = callbacks;
     this.log = log;
-
-    // 상태 변경 콜백 등록
-    if (callbacks.onStateChange) {
-      this.onStateChange(callbacks.onStateChange);
-    }
+    callbacks.onStateChange && this.onStateChange(callbacks.onStateChange);
   }
 
   /**
@@ -53,21 +49,12 @@ export class EventManager {
   /**
    * 에러 이벤트를 발생시킵니다.
    */
-  public emitError(error: Error, context?: string): void {
-    const errorMessage = context ? `${context}: ${error.message}` : error.message;
+  public emitError(error: Error, errorType?: FaceDetectionErrorType, context?: string): void {
+    const message = context ? `${context}: ${error.message}` : error.message;
+    const type = errorType ?? FaceDetectionErrorType.UNKNOWN_ERROR;
 
-    // 로그가 있을 때만 출력 (중복 방지)
-    if (this.log) {
-      this.log(`오류 발생: ${errorMessage}`, error);
-    }
-
-    if (this.callbacks.onError) {
-      this.callbacks.onError({
-        type: FaceDetectionErrorType.UNKNOWN_ERROR,
-        message: errorMessage,
-        originalError: error,
-      });
-    }
+    this.log?.(`오류 발생: ${message}`);
+    this.callbacks.onError?.({ type, message });
   }
 
   /**
@@ -76,68 +63,55 @@ export class EventManager {
   public emitWebcamError(err: Error, isIOS: boolean): void {
     const isPermissionError =
       err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError';
-    const isIOSPermissionError =
-      isIOS &&
-      err.message &&
-      (err.message.includes('permission') ||
-        err.message.includes('허가') ||
-        err.message.includes('권한'));
+    const isIOSPermissionError = isIOS && /permission|허가|권한/.test(err.message ?? '');
 
-    let errorType: FaceDetectionErrorType;
-    let errorMessage: string;
+    const isDenied = isPermissionError || isIOSPermissionError;
 
-    if (isPermissionError || isIOSPermissionError) {
-      errorType = FaceDetectionErrorType.WEBCAM_PERMISSION_DENIED;
-      errorMessage =
-        '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.';
-    } else {
-      errorType = FaceDetectionErrorType.WEBCAM_ACCESS_FAILED;
-      errorMessage = `웹캠에 접근할 수 없습니다: ${err.message}`;
-    }
+    const type = isDenied
+      ? FaceDetectionErrorType.WEBCAM_PERMISSION_DENIED
+      : FaceDetectionErrorType.WEBCAM_ACCESS_FAILED;
 
-    if (this.callbacks.onError) {
-      this.callbacks.onError({
-        type: errorType,
-        message: errorMessage,
-        originalError: err,
-      });
-    }
+    const message = isDenied
+      ? '웹캠 접근 권한이 거부되었습니다. 브라우저 설정에서 카메라 권한을 허용해주세요.'
+      : `웹캠에 접근할 수 없습니다: ${err.message}`;
+
+    this.log?.(`웹캠 오류 발생: ${message}`);
+    this.callbacks.onError?.({ type, message });
   }
 
   /**
    * 얼굴 감지 상태 변경 이벤트를 발생시킵니다.
    */
   public emitFaceDetectionChange(isDetected: boolean, boundingBox: any): void {
-    if (this.callbacks.onFaceDetectionChange) {
-      this.callbacks.onFaceDetectionChange(isDetected, boundingBox);
-    }
+    this.callbacks.onFaceDetectionChange?.(isDetected, boundingBox);
   }
 
   /**
    * 얼굴 위치 변경 이벤트를 발생시킵니다.
    */
   public emitFacePositionChange(isInCircle: boolean): void {
-    if (this.callbacks.onFacePositionChange) {
-      this.callbacks.onFacePositionChange(isInCircle);
-    }
+    this.callbacks.onFacePositionChange?.(isInCircle);
   }
 
   /**
    * 측정 진행률 이벤트를 발생시킵니다.
    */
   public emitProgress(progress: number, dataPoints: number): void {
-    if (this.callbacks.onProgress) {
-      this.callbacks.onProgress(progress, dataPoints);
-    }
+    this.callbacks.onProgress?.(progress, dataPoints);
   }
 
   /**
    * 측정 완료 이벤트를 발생시킵니다.
    */
   public emitMeasurementComplete(result: any): void {
-    if (this.callbacks.onMeasurementComplete) {
-      this.callbacks.onMeasurementComplete(result);
-    }
+    this.callbacks.onMeasurementComplete?.(result);
+  }
+
+  /**
+   * 카운트다운 이벤트를 발생시킵니다.
+   */
+  public emitCountdown(remainingSeconds: number, totalSeconds: number): void {
+    this.callbacks.onCountdown?.(remainingSeconds, totalSeconds);
   }
 
   /**

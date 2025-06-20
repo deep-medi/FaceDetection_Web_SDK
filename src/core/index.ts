@@ -16,7 +16,7 @@ export type {
 } from '../types';
 
 // ===== Enum Exports =====
-export { FaceDetectionState } from '../types';
+export { FaceDetectionState, FaceDetectionErrorType } from '../types';
 
 // ===== Utility Exports =====
 export { processResults } from '../utils/faceDetectionProcessor';

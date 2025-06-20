@@ -11,6 +11,7 @@ import {
   FaceDetectionState,
   MeasurementResult,
   SDKEventCallbacks,
+  FaceDetectionErrorType,
 } from './index';
 import packageJson from '../../package.json';
 
@@ -87,6 +88,9 @@ export class FaceDetectionSDK {
       onMeasurementComplete: this.handleMeasurementComplete.bind(this),
       onDataDownload: this.createDownloadFunction(),
       onLog: (msg: string) => this.log(msg),
+      onCountdown: (remainingSeconds: number, totalSeconds: number) => {
+        this.eventManager.emitCountdown(remainingSeconds, totalSeconds);
+      },
     });
 
     // 상태 변경 시 EventManager를 통해 콜백 호출
@@ -97,10 +101,7 @@ export class FaceDetectionSDK {
     this.log(`SDK 인스턴스가 생성되었습니다. (v${FaceDetectionSDK.VERSION})`);
   }
 
-  /**
-   * SDK 완전 초기화 및 측정 시작
-   * HTML 요소 초기화, MediaPipe 설정, 워커 초기화, 측정 시작을 한 번에 수행합니다.
-   */
+  // SDK 완전 초기화 및 측정 시작
   public async initializeAndStart(): Promise<void> {
     try {
       this.log('SDK 완전 초기화를 시작합니다...');
@@ -116,15 +117,16 @@ export class FaceDetectionSDK {
 
       this.log('SDK 초기화 및 측정 시작이 완료되었습니다.');
     } catch (error) {
-      this.eventManager.emitError(error as Error, 'SDK 완전 초기화 중 오류');
+      this.eventManager.emitError(
+        error as Error,
+        FaceDetectionErrorType.INITIALIZATION_FAILED,
+        'SDK 완전 초기화 중 오류',
+      );
       throw error;
     }
   }
 
-  /**
-   * SDK 정리
-   * 리소스를 해제하고 이벤트 리스너를 제거합니다.
-   */
+  // SDK 정리
   public dispose(): void {
     this.stopDetection();
     this.workerManager.terminate();
@@ -186,27 +188,24 @@ export class FaceDetectionSDK {
   // 얼굴 인식 설정
   private setupFaceDetection(): void {
     this.mediapipeManager.setOnResultsCallback((results: any) => {
-      if (!results.detections || results.detections.length === 0) {
-        this.eventManager.emitFaceDetectionChange(false, null);
-        this.isFaceInCircle = false;
-        this.eventManager.emitFacePositionChange(false);
-        this.measurementManager.resetData();
-        this.eventManager.emitError(
-          new Error('얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.'),
-          'FACE_NOT_DETECTED',
-        );
+      const noDetections = !results.detections || results.detections.length === 0;
+
+      if (noDetections) {
+        this.handleNoFaceDetected();
         return;
       }
+
+      const config = this.configManager.getConfig();
       const result = processResults(results, {
         isFirstFrame: this.isFirstFrame,
         isFaceDetected: this.isFaceDetected,
         faceDetectionTimer: this.faceDetectionTimer,
-        FACE_DETECTION_TIMEOUT:
-          this.configManager.getConfig().faceDetection?.timeout || DEFAULT_FACE_DETECTION_TIMEOUT,
+        FACE_DETECTION_TIMEOUT: config.faceDetection?.timeout ?? DEFAULT_FACE_DETECTION_TIMEOUT,
         handleFaceDetection: this.handleFaceDetection.bind(this),
         handleNoDetection: () => {},
         mean_red: [],
       });
+
       this.isFirstFrame = result.isFirstFrame;
       this.isFaceDetected = result.isFaceDetected;
       this.faceDetectionTimer = result.faceDetectionTimer;
@@ -214,18 +213,34 @@ export class FaceDetectionSDK {
     });
   }
 
+  private handleNoFaceDetected(): void {
+    this.eventManager.emitFaceDetectionChange(false, null);
+    this.isFaceInCircle = false;
+    this.eventManager.emitFacePositionChange(false);
+    this.measurementManager.resetData();
+    this.eventManager.emitError(
+      new Error('얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.'),
+      FaceDetectionErrorType.FACE_NOT_DETECTED,
+    );
+  }
+
   // 얼굴 인식 처리
   private handleFaceDetection(detection: Detection): void {
     this.eventManager.emitFaceDetectionChange(true, this.lastBoundingBox);
+
     const { isInCircle } = this.facePositionManager.updateFacePosition(
       detection.boundingBox,
       this.video,
       this.container,
     );
+
+    // 얼굴 위치 상태 변경 시 이벤트 발생
     if (this.isFaceInCircle !== isInCircle) {
       this.isFaceInCircle = isInCircle;
       this.eventManager.emitFacePositionChange(isInCircle);
     }
+
+    // 초기 상태에서 원 안에 얼굴이 들어오면 READY 상태로 전환
     if (
       this.stateManager.isState(FaceDetectionState.INITIAL) &&
       !this.isReadyTransitionStarted &&
@@ -235,71 +250,110 @@ export class FaceDetectionSDK {
       this.stateManager.setState(FaceDetectionState.READY);
       this.startReadyToMeasuringTransition();
     }
+
+    // 얼굴이 원 밖에 있을 때 처리
     if (!isInCircle) {
-      if (this.stateManager.isState(FaceDetectionState.READY)) {
-        this.stateManager.setState(FaceDetectionState.INITIAL);
-        this.isReadyTransitionStarted = false;
-      }
-      this.measurementManager.resetData();
-      this.eventManager.emitError(new Error('원 안에 얼굴을 위치해주세요.'), 'FACE_OUT_OF_CIRCLE');
+      this.handleFaceOutOfCircle();
       return;
     }
+
+    // MEASURING 상태일 때 얼굴 영역 데이터 전송
     if (this.stateManager.isState(FaceDetectionState.MEASURING)) {
-      const width = this.canvasElement.width;
-      const height = this.canvasElement.height;
-      const faceRegion = this.ctx.getImageData(0, 0, width, height);
+      const faceRegion = this.ctx.getImageData(
+        0,
+        0,
+        this.canvasElement.width,
+        this.canvasElement.height,
+      );
       this.workerManager.postFaceRegionData(faceRegion);
     }
+  }
+
+  private handleFaceOutOfCircle(): void {
+    if (this.stateManager.isState(FaceDetectionState.READY)) {
+      this.stateManager.setState(FaceDetectionState.INITIAL);
+      this.isReadyTransitionStarted = false;
+    }
+    this.measurementManager.resetData();
+    this.eventManager.emitError(
+      new Error('원 안에 얼굴을 위치해주세요.'),
+      FaceDetectionErrorType.FACE_OUT_OF_CIRCLE,
+    );
   }
 
   // 얼굴 측정 시작
   private async handleClickStart(): Promise<void> {
     try {
-      this.isFaceDetectiveActive = true;
-      this.isFaceDetected = false;
-      this.isFirstFrame = true;
-      this.isFaceInCircle = false;
-      this.isReadyTransitionStarted = false;
+      await this.initializeDetectionState();
       const webcamStream = await this.webcamManager.startWebcam();
-      this.video.srcObject = webcamStream;
-      this.video.play();
-      this.video.addEventListener('loadeddata', () => {
-        let lastFrameTime = 0;
-        let frameCount = 0;
-        const processVideo = async (): Promise<void> => {
-          if (!this.isFaceDetectiveActive || this.video.readyState < VIDEO_READY_STATE) return;
-          const now = performance.now();
-          const elapsed = now - lastFrameTime;
-          const frameInterval =
-            this.configManager.getConfig().measurement?.frameInterval || DEFAULT_FRAME_INTERVAL;
-          if (elapsed > frameInterval) {
-            lastFrameTime = now - (elapsed % frameInterval);
-            frameCount++;
-            this.videoCtx.drawImage(
-              this.video,
-              0,
-              0,
-              this.videoCanvas.width,
-              this.videoCanvas.height,
-            );
-            const frameProcessInterval =
-              this.configManager.getConfig().measurement?.frameProcessInterval ||
-              DEFAULT_FRAME_PROCESS_INTERVAL;
-            if (frameCount % frameProcessInterval === 0) {
-              await this.mediapipeManager.sendImage(this.video);
-            } else if (this.lastBoundingBox && this.isFaceInCircle) {
-              const { left, top, width, height } = this.lastBoundingBox;
-              const faceRegion = this.videoCtx.getImageData(left, top, width, height);
-              this.workerManager.postFaceRegionData(faceRegion);
-            }
-          }
-          requestAnimationFrame(processVideo);
-        };
-        requestAnimationFrame(processVideo);
-      });
+      await this.setupVideoStream(webcamStream);
+      this.startVideoProcessing();
     } catch (err) {
       this.handleWebcamError(err as Error);
     }
+  }
+
+  // 얼굴 인식 상태 초기화
+  private async initializeDetectionState(): Promise<void> {
+    this.isFaceDetectiveActive = true;
+    this.isFaceDetected = false;
+    this.isFirstFrame = true;
+    this.isFaceInCircle = false;
+    this.isReadyTransitionStarted = false;
+  }
+
+  // 비디오 스트림 설정
+  private async setupVideoStream(webcamStream: MediaStream): Promise<void> {
+    this.video.srcObject = webcamStream;
+    this.video.play();
+  }
+
+  // 비디오 처리 시작
+  private startVideoProcessing(): void {
+    this.video.addEventListener('loadeddata', () => {
+      this.initializeVideoProcessor();
+    });
+  }
+
+  // 비디오 프로세서 초기화 및 프레임 처리 루프 시작
+  private initializeVideoProcessor(): void {
+    let lastFrameTime = 0;
+    let frameCount = 0;
+
+    const processVideo = async (): Promise<void> => {
+      if (!this.isFaceDetectiveActive || this.video.readyState < VIDEO_READY_STATE) return;
+
+      const now = performance.now();
+      const elapsed = now - lastFrameTime;
+      const frameInterval =
+        this.configManager.getConfig().measurement?.frameInterval || DEFAULT_FRAME_INTERVAL;
+
+      if (elapsed > frameInterval) {
+        lastFrameTime = now - (elapsed % frameInterval);
+        frameCount++;
+
+        // 비디오 프레임을 캔버스에 그리기
+        this.videoCtx.drawImage(this.video, 0, 0, this.videoCanvas.width, this.videoCanvas.height);
+
+        // 프레임 데이터 처리
+        const frameProcessInterval =
+          this.configManager.getConfig().measurement?.frameProcessInterval ||
+          DEFAULT_FRAME_PROCESS_INTERVAL;
+
+        if (frameCount % frameProcessInterval === 0) {
+          await this.mediapipeManager.sendImage(this.video);
+        } else if (this.lastBoundingBox !== null && this.isFaceInCircle) {
+          // 얼굴 영역 데이터 처리
+          const { left, top, width, height } = this.lastBoundingBox;
+          const faceRegion = this.videoCtx.getImageData(left, top, width, height);
+          this.workerManager.postFaceRegionData(faceRegion);
+        }
+      }
+
+      requestAnimationFrame(processVideo);
+    };
+
+    requestAnimationFrame(processVideo);
   }
 
   // 웹캠 에러 처리

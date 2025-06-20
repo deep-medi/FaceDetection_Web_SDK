@@ -3,15 +3,12 @@ import { updatePositionErrors } from '../../utils/facePosition.ts';
 import { checkFacePosition } from '../../utils/facePositionUtils.ts';
 
 export class FacePositionManager {
-  private lastPosition: number = 0;
-  private lastYPosition: number = 0;
-  private positionErr: number = 0;
-  private yPositionErr: number = 0;
-  private errorBounding: number;
+  private lastPosition = 0;
+  private lastYPosition = 0;
+  private positionErr = 0;
+  private yPositionErr = 0;
 
-  constructor(errorBounding: number = 4) {
-    this.errorBounding = errorBounding;
-  }
+  constructor(private errorBounding = 4) {}
 
   /**
    * 얼굴 위치를 업데이트하고 에러를 계산합니다.
@@ -24,15 +21,13 @@ export class FacePositionManager {
     const faceX = boundingBox.xCenter * video.videoWidth;
     const faceY = boundingBox.yCenter * video.videoHeight;
 
-    // 얼굴 위치 체크
     const { isInCircle } = checkFacePosition(faceX, faceY, video, container);
 
-    // 좌표로 에러 카운트
-    const {
-      lastPosition: newLastPosition,
-      lastYPosition: newLastYPosition,
-      positionErr: newPositionErr,
-      yPositionErr: newYPositionErr,
+    ({
+      lastPosition: this.lastPosition,
+      lastYPosition: this.lastYPosition,
+      positionErr: this.positionErr,
+      yPositionErr: this.yPositionErr,
     } = updatePositionErrors(
       faceX,
       faceY,
@@ -41,13 +36,7 @@ export class FacePositionManager {
       this.positionErr,
       this.yPositionErr,
       this.errorBounding,
-    );
-
-    // 좌표 갱신
-    this.lastPosition = newLastPosition;
-    this.lastYPosition = newLastYPosition;
-    this.positionErr = newPositionErr;
-    this.yPositionErr = newYPositionErr;
+    ));
 
     return { isInCircle };
   }
