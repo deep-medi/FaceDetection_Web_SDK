@@ -145,6 +145,15 @@ export class EventManager {
   }
 
   /**
+   * 카운트다운 이벤트를 발생시킵니다.
+   */
+  public emitCountdown(remainingSeconds: number, totalSeconds: number): void {
+    if (this.callbacks.onCountdown) {
+      this.callbacks.onCountdown(remainingSeconds, totalSeconds);
+    }
+  }
+
+  /**
    * 이벤트 콜백을 정리합니다.
    */
   public dispose(): void {

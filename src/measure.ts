@@ -77,6 +77,9 @@ const sdkCallbacks: SDKEventCallbacks = {
       container.style.border = '8px solid green';
     }
   },
+  onCountdown: (remainingSeconds) => {
+    console.log(`[SDK Demo] 카운트다운: ${remainingSeconds}초 남았습니다...`);
+  },
 };
 
 // SDK 인스턴스 생성

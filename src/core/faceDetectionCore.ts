@@ -88,6 +88,9 @@ export class FaceDetectionSDK {
       onMeasurementComplete: this.handleMeasurementComplete.bind(this),
       onDataDownload: this.createDownloadFunction(),
       onLog: (msg: string) => this.log(msg),
+      onCountdown: (remainingSeconds: number, totalSeconds: number) => {
+        this.eventManager.emitCountdown(remainingSeconds, totalSeconds);
+      },
     });
 
     // 상태 변경 시 EventManager를 통해 콜백 호출
