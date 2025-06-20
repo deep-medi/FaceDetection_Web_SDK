@@ -5,6 +5,38 @@
 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.0.0/)을 기반으로 하며,
 이 프로젝트는 [의미적 버전 관리](https://semver.org/lang/ko/)를 따릅니다.
 
+## [0.2.0](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.14...v0.2.0) (2025-06-20)
+
+
+### 🔧 기타 수정
+
+* **release:** 0.1.14 ([8bf49ed](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/8bf49ed0f0c71b40b2056b9407aaa5ba459fc8c0))
+
+
+### 🐛 버그 수정
+
+* 에러 타입 처리 수정 ([5cd66f4](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/5cd66f48e3c9ef9bc88f3ec5d8a5eba21f8d5672))
+* 측정 지연 시간 수정 및 에러 처리 개선 ([8c6fd21](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/8c6fd21dce71b4d12812dbb879afd1e3c3c18413))
+
+
+### ✨ 새로운 기능
+
+* 카운트다운 기능 추가 및 이벤트 관리 개선 ([cee8298](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/cee82987f7a85cd5e66dbaef9f70be3c05035350))
+
+
+### ♻️ 코드 리팩토링
+
+* 상태 변경 콜백 실행 방식을 개선하여 코드 가독성을 향상시킴 ([acc7117](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/acc71173ab6062572692e134def99d3a2e046e5f))
+* 얼굴 인식 로직을 개선하여 코드 가독성을 높이고 중복된 처리 로직을 메서드로 분리 ([e553e65](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/e553e655c72e70e5dd3c142b8ef1a3b8dcf3daaf))
+* 얼굴 인식 초기화 및 비디오 처리 로직을 메서드로 분리하여 코드 가독성 향상 ([e52325a](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/e52325a701fe246ff36d19121410610ab6c6d21b))
+* ConfigManager 및 EventManager의 코드 가독성을 향상시키기 위해 중복 제거 및 간결한 문법 사용 ([b3a752c](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/b3a752cf505d92a5e52bd481575a792ef460623d))
+* FacePositionManager 및 MeasurementManager에서 코드 간결성을 위해 중복 제거 및 초기화 방식 개선 ([f272d4e](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/f272d4e243589d5e243a06196a2f184ac58f69c8))
+
+
+### 📝 문서
+
+* README.md 업데이트 - Manager 기반 아키텍처 및 데이터 다운로드 설정 추가, 상태 관리 시스템 개선 ([e33481d](https://github.com/deep-medi/FaceDetection_Web_SDK/commit/e33481debf3b172caf8dce7bc3d18f64c98bca65))
+
 ### [0.1.14](https://github.com/deep-medi/FaceDetection_Web_SDK/compare/v0.1.13...v0.1.14) (2025-06-19)
 
 
