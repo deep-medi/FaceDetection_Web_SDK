@@ -53,8 +53,9 @@ export class EventManager {
   /**
    * 에러 이벤트를 발생시킵니다.
    */
-  public emitError(error: Error, context?: string): void {
+  public emitError(error: Error, errorType?: FaceDetectionErrorType, context?: string): void {
     const errorMessage = context ? `${context}: ${error.message}` : error.message;
+    const finalErrorType = errorType || FaceDetectionErrorType.UNKNOWN_ERROR;
 
     // 로그가 있을 때만 출력 (중복 방지)
     if (this.log) {
@@ -63,7 +64,7 @@ export class EventManager {
 
     if (this.callbacks.onError) {
       this.callbacks.onError({
-        type: FaceDetectionErrorType.UNKNOWN_ERROR,
+        type: finalErrorType,
         message: errorMessage,
         originalError: error,
       });

@@ -11,6 +11,7 @@ import {
   FaceDetectionState,
   MeasurementResult,
   SDKEventCallbacks,
+  FaceDetectionErrorType,
 } from './index';
 import packageJson from '../../package.json';
 
@@ -116,7 +117,11 @@ export class FaceDetectionSDK {
 
       this.log('SDK 초기화 및 측정 시작이 완료되었습니다.');
     } catch (error) {
-      this.eventManager.emitError(error as Error, 'SDK 완전 초기화 중 오류');
+      this.eventManager.emitError(
+        error as Error,
+        FaceDetectionErrorType.INITIALIZATION_FAILED,
+        'SDK 완전 초기화 중 오류',
+      );
       throw error;
     }
   }
@@ -193,7 +198,7 @@ export class FaceDetectionSDK {
         this.measurementManager.resetData();
         this.eventManager.emitError(
           new Error('얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.'),
-          'FACE_NOT_DETECTED',
+          FaceDetectionErrorType.FACE_NOT_DETECTED,
         );
         return;
       }
@@ -241,7 +246,10 @@ export class FaceDetectionSDK {
         this.isReadyTransitionStarted = false;
       }
       this.measurementManager.resetData();
-      this.eventManager.emitError(new Error('원 안에 얼굴을 위치해주세요.'), 'FACE_OUT_OF_CIRCLE');
+      this.eventManager.emitError(
+        new Error('원 안에 얼굴을 위치해주세요.'),
+        FaceDetectionErrorType.FACE_OUT_OF_CIRCLE,
+      );
       return;
     }
     if (this.stateManager.isState(FaceDetectionState.MEASURING)) {
