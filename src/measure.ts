@@ -40,7 +40,7 @@ const sdkConfig: FaceDetectionSDKConfig = {
     container,
   },
   measurement: {
-    readyToMeasuringDelay: 5,
+    readyToMeasuringDelay: 3,
   },
 };
 
@@ -69,10 +69,6 @@ const sdkCallbacks: SDKEventCallbacks = {
 
   onError: (error) => {
     console.error('[SDK Demo] 오류 발생:', error.type, error.message);
-
-    if (error.originalError) {
-      console.error('[SDK Demo] 원본 오류:', error.originalError);
-    }
   },
   onFacePositionChange: (isInCircle) => {
     if (!isInCircle) {

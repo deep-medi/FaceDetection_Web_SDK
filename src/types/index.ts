@@ -206,7 +206,6 @@ export enum FaceDetectionErrorType {
 export interface FaceDetectionError {
   type: FaceDetectionErrorType;
   message: string;
-  originalError?: Error;
 }
 
 /**

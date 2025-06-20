@@ -57,16 +57,15 @@ export class EventManager {
     const errorMessage = context ? `${context}: ${error.message}` : error.message;
     const finalErrorType = errorType || FaceDetectionErrorType.UNKNOWN_ERROR;
 
-    // 로그가 있을 때만 출력 (중복 방지)
+    // 로그가 있을 때만 출력
     if (this.log) {
-      this.log(`오류 발생: ${errorMessage}`, error);
+      this.log(`오류 발생: ${errorMessage}`);
     }
 
     if (this.callbacks.onError) {
       this.callbacks.onError({
         type: finalErrorType,
         message: errorMessage,
-        originalError: error,
       });
     }
   }
@@ -96,11 +95,15 @@ export class EventManager {
       errorMessage = `웹캠에 접근할 수 없습니다: ${err.message}`;
     }
 
+    // 로그가 있을 때만 출력
+    if (this.log) {
+      this.log(`웹캠 오류 발생: ${errorMessage}`);
+    }
+
     if (this.callbacks.onError) {
       this.callbacks.onError({
         type: errorType,
         message: errorMessage,
-        originalError: err,
       });
     }
   }
