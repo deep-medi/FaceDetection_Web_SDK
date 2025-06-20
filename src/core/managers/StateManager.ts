@@ -33,12 +33,10 @@ export class StateManager {
    * 상태 변경 이벤트를 발생시킵니다.
    */
   private emitStateChange(newState: FaceDetectionState, previousState: FaceDetectionState): void {
-    if (this.stateChangeCallback) {
-      try {
-        this.stateChangeCallback(newState, previousState);
-      } catch (error) {
-        console.error('상태 변경 콜백 실행 중 오류:', error);
-      }
+    try {
+      this.stateChangeCallback?.(newState, previousState);
+    } catch (error) {
+      console.error('상태 변경 콜백 실행 중 오류:', error);
     }
   }
 
