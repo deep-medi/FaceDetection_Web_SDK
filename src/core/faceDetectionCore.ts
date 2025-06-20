@@ -194,27 +194,24 @@ export class FaceDetectionSDK {
   // 얼굴 인식 설정
   private setupFaceDetection(): void {
     this.mediapipeManager.setOnResultsCallback((results: any) => {
-      if (!results.detections || results.detections.length === 0) {
-        this.eventManager.emitFaceDetectionChange(false, null);
-        this.isFaceInCircle = false;
-        this.eventManager.emitFacePositionChange(false);
-        this.measurementManager.resetData();
-        this.eventManager.emitError(
-          new Error('얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.'),
-          FaceDetectionErrorType.FACE_NOT_DETECTED,
-        );
+      const noDetections = !results.detections || results.detections.length === 0;
+
+      if (noDetections) {
+        this.handleNoFaceDetected();
         return;
       }
+
+      const config = this.configManager.getConfig();
       const result = processResults(results, {
         isFirstFrame: this.isFirstFrame,
         isFaceDetected: this.isFaceDetected,
         faceDetectionTimer: this.faceDetectionTimer,
-        FACE_DETECTION_TIMEOUT:
-          this.configManager.getConfig().faceDetection?.timeout || DEFAULT_FACE_DETECTION_TIMEOUT,
+        FACE_DETECTION_TIMEOUT: config.faceDetection?.timeout ?? DEFAULT_FACE_DETECTION_TIMEOUT,
         handleFaceDetection: this.handleFaceDetection.bind(this),
         handleNoDetection: () => {},
         mean_red: [],
       });
+
       this.isFirstFrame = result.isFirstFrame;
       this.isFaceDetected = result.isFaceDetected;
       this.faceDetectionTimer = result.faceDetectionTimer;
@@ -222,18 +219,34 @@ export class FaceDetectionSDK {
     });
   }
 
+  private handleNoFaceDetected(): void {
+    this.eventManager.emitFaceDetectionChange(false, null);
+    this.isFaceInCircle = false;
+    this.eventManager.emitFacePositionChange(false);
+    this.measurementManager.resetData();
+    this.eventManager.emitError(
+      new Error('얼굴을 인식할 수 없습니다. 조명이 충분한 곳에서 다시 시도해주세요.'),
+      FaceDetectionErrorType.FACE_NOT_DETECTED,
+    );
+  }
+
   // 얼굴 인식 처리
   private handleFaceDetection(detection: Detection): void {
     this.eventManager.emitFaceDetectionChange(true, this.lastBoundingBox);
+
     const { isInCircle } = this.facePositionManager.updateFacePosition(
       detection.boundingBox,
       this.video,
       this.container,
     );
+
+    // 얼굴 위치 상태 변경 시 이벤트 발생
     if (this.isFaceInCircle !== isInCircle) {
       this.isFaceInCircle = isInCircle;
       this.eventManager.emitFacePositionChange(isInCircle);
     }
+
+    // 초기 상태에서 원 안에 얼굴이 들어오면 READY 상태로 전환
     if (
       this.stateManager.isState(FaceDetectionState.INITIAL) &&
       !this.isReadyTransitionStarted &&
@@ -243,24 +256,35 @@ export class FaceDetectionSDK {
       this.stateManager.setState(FaceDetectionState.READY);
       this.startReadyToMeasuringTransition();
     }
+
+    // 얼굴이 원 밖에 있을 때 처리
     if (!isInCircle) {
-      if (this.stateManager.isState(FaceDetectionState.READY)) {
-        this.stateManager.setState(FaceDetectionState.INITIAL);
-        this.isReadyTransitionStarted = false;
-      }
-      this.measurementManager.resetData();
-      this.eventManager.emitError(
-        new Error('원 안에 얼굴을 위치해주세요.'),
-        FaceDetectionErrorType.FACE_OUT_OF_CIRCLE,
-      );
+      this.handleFaceOutOfCircle();
       return;
     }
+
+    // MEASURING 상태일 때 얼굴 영역 데이터 전송
     if (this.stateManager.isState(FaceDetectionState.MEASURING)) {
-      const width = this.canvasElement.width;
-      const height = this.canvasElement.height;
-      const faceRegion = this.ctx.getImageData(0, 0, width, height);
+      const faceRegion = this.ctx.getImageData(
+        0,
+        0,
+        this.canvasElement.width,
+        this.canvasElement.height,
+      );
       this.workerManager.postFaceRegionData(faceRegion);
     }
+  }
+
+  private handleFaceOutOfCircle(): void {
+    if (this.stateManager.isState(FaceDetectionState.READY)) {
+      this.stateManager.setState(FaceDetectionState.INITIAL);
+      this.isReadyTransitionStarted = false;
+    }
+    this.measurementManager.resetData();
+    this.eventManager.emitError(
+      new Error('원 안에 얼굴을 위치해주세요.'),
+      FaceDetectionErrorType.FACE_OUT_OF_CIRCLE,
+    );
   }
 
   // 얼굴 측정 시작
