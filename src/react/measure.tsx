@@ -8,6 +8,7 @@ import {
   FaceDetectionSDKConfig,
   FaceDetectionState,
   MeasurementResult,
+  useFaceDetectionContext,
 } from './index';
 
 // 디바이스 감지
@@ -35,54 +36,55 @@ const sdkConfig: FaceDetectionSDKConfig = {
 
 // 커스텀 Progress Bar 컴포넌트
 const CustomProgressBar: React.FC = () => {
+  const { state, progress } = useFaceDetectionContext();
+  const progressPercent = Math.round(progress * 100);
+
   return (
     <ProgressBar
-      size="medium"
       className="custom-progress-bar"
-      renderProgress={(progress, state) => {
-        const progressPercent = Math.round(progress * 100);
-
-        return (
-          <div className="custom-progress-content">
-            <div className="progress-circle">
-              <svg width="100%" height="100%" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="rgba(255, 255, 255, 0.3)"
-                  strokeWidth="2"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="45"
-                  fill="none"
-                  stroke="white"
-                  strokeWidth="2"
-                  strokeDasharray={`${2 * Math.PI * 45}`}
-                  strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress)}`}
-                  transform="rotate(-90 50 50)"
-                  style={{ transition: 'stroke-dashoffset 0.3s ease' }}
-                />
-              </svg>
-            </div>
-            <div className="progress-text">
-              {state === FaceDetectionState.MEASURING && (
-                <div className="progress-percent">{progressPercent}%</div>
-              )}
-              <div className="state-text">
-                {state === FaceDetectionState.INITIAL && '초기화 중...'}
-                {state === FaceDetectionState.READY && '원 안에 얼굴을 위치시켜 주세요'}
-                {state === FaceDetectionState.MEASURING && '측정 중...'}
-                {state === FaceDetectionState.COMPLETED && '측정 완료!'}
-              </div>
-            </div>
-          </div>
-        );
+      style={{
+        width: 240,
+        height: 240,
       }}
-    />
+    >
+      <div className="custom-progress-content">
+        <div className="progress-circle">
+          <svg width="100%" height="100%" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.3)"
+              strokeWidth="2"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeDasharray={`${2 * Math.PI * 45}`}
+              strokeDashoffset={`${2 * Math.PI * 45 * (1 - progress)}`}
+              transform="rotate(-90 50 50)"
+              style={{ transition: 'stroke-dashoffset 0.3s ease' }}
+            />
+          </svg>
+        </div>
+        <div className="progress-text">
+          {state === FaceDetectionState.MEASURING && (
+            <div className="progress-percent">{progressPercent}%</div>
+          )}
+          <div className="state-text">
+            {state === FaceDetectionState.INITIAL && '초기화 중...'}
+            {state === FaceDetectionState.READY && '원 안에 얼굴을 위치시켜 주세요'}
+            {state === FaceDetectionState.MEASURING && '측정 중...'}
+            {state === FaceDetectionState.COMPLETED && '측정 완료!'}
+          </div>
+        </div>
+      </div>
+    </ProgressBar>
   );
 };
 

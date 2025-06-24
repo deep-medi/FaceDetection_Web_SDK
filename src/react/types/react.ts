@@ -30,14 +30,8 @@ export interface ProgressBarProps {
   className?: string;
   /** 추가 스타일 */
   style?: React.CSSProperties;
-  /** 커스텀 렌더링 함수 */
-  renderProgress?: (progress: number, state: FaceDetectionState) => React.ReactNode;
-  /** Progress Bar 크기 */
-  size?: 'small' | 'medium' | 'large' | number;
-  /** 테두리 색상 */
-  borderColor?: string;
-  /** 배경 색상 */
-  backgroundColor?: string;
+  /** 자식 컴포넌트 */
+  children?: React.ReactNode;
 }
 
 // Context 타입
