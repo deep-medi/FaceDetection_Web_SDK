@@ -1,16 +1,12 @@
 <!doctype html>
 <html lang="ko">
   <head>
-    <meta name="title" content="얼굴 메시 데모 - Andy Kong" />
-    <meta
-      name="keywords"
-      content="머신러닝, 미디어파이프, 얼굴 메시, 텐서플로우, 텐서플로우 자바스크립트, PPG, 광용적맥파, 미디엄, 깃허브, 코드, 자바스크립트"
-    />
-    <meta name="robots" content="index, follow" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <meta name="language" content="Korean" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title data-i18n="measure.title">건강 측정</title>
+    <title>FaceDetection Web SDK - React Demo</title>
+    <meta name="description" content="FaceDetection Web SDK React 버전 데모" />
+
+    <!-- MathJS 라이브러리 -->
     <script src="https://unpkg.com/mathjs/lib/browser/math.js"></script>
 
     <style>
@@ -30,112 +26,47 @@
         font: inherit;
         vertical-align: baseline;
         line-height: 1;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       }
 
-      canvas,
-      video {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-size: 100%;
-        font: inherit;
-        vertical-align: baseline;
-      }
-
-      div {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-size: 100%;
-        font: inherit;
-        vertical-align: baseline;
-      }
-
-      /* 메인 페이지 스타일 */
-      #MeasurePage {
+      /* 커스텀 Progress Bar 스타일 */
+      .custom-progress-content {
         display: flex;
         flex-direction: column;
-        justify-content: center;
-      }
-
-      #MeasurePage #Content {
-        width: 100vw;
-        height: 100vh;
-        margin: 0 auto;
-        position: relative;
-        display: flex;
-        justify-content: center;
         align-items: center;
-      }
-
-      #MeasurePage #Content video {
+        justify-content: center;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        transform: scaleX(-1);
       }
 
-      #MeasurePage #Content .output_canvas {
-        width: 100%;
-        height: 100%;
-        display: none;
-        object-fit: cover;
+      .progress-circle {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 10px;
       }
 
-      #MeasurePage #Content .progress-bar {
-        width: 80vw;
-        height: 80vw;
-        max-width: 240px;
-        max-height: 240px;
-        border: 8px solid #ffffff;
-        border-radius: 50%;
-        position: absolute;
-        top: 9.745127436281859vh;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 50;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        overflow: hidden;
-        transition: opacity 0.3s ease;
-        box-shadow: 0 0 100vw 100vh rgba(26, 26, 26, 0.6);
+      .progress-text {
+        text-align: center;
+        color: white;
       }
 
-      /* 반응형 디자인 (태블릿 - 웹) */
-      @media all and (min-width: 768px) {
-        #MeasurePage #Content {
-          width: 56.22188905547227vh;
-          min-width: 375px;
-        }
+      .progress-percent {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
 
-        #MeasurePage #Content .progress-bar {
-          width: 35.98200899550225vh;
-          height: 35.98200899550225vh;
-          max-width: none;
-          max-height: none;
-        }
+      .state-text {
+        font-size: 14px;
+        opacity: 0.9;
       }
     </style>
   </head>
 
   <body>
-    <div id="MeasurePage">
-      <section id="Content">
-        <video
-          id="input_video"
-          class="input_video"
-          muted="true"
-          width="640px"
-          height="480px"
-          autoplay
-          playsinline
-        ></video>
-        <canvas class="output_canvas" width="320px" height="240px"></canvas>
-        <div class="progress-bar"></div>
-      </section>
-    </div>
+    <div id="root"></div>
 
-    <script type="module" src="/src/measure.ts"></script>
+    <!-- React SDK 데모 스크립트 -->
+    <script type="module" src="./src/react/measure.tsx"></script>
   </body>
 </html>

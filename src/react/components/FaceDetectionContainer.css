@@ -1,0 +1,32 @@
+.face-detection-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.face-detection-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* 셀카 모드: 좌우 반전 */
+}
+
+.face-detection-container canvas {
+  width: 100%;
+  height: 100%;
+  display: none;
+  object-fit: cover;
+}
+
+/* 반응형 디자인 (태블릿 - 웹) */
+@media all and (min-width: 768px) {
+  .face-detection-container {
+    width: 56.22188905547227vh;
+    min-width: 375px;
+  }
+}

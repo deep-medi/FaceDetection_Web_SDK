@@ -17,6 +17,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.es.js",
       "require": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.es.js",
+      "require": "./dist/react/index.js"
     }
   },
   "keywords": [
@@ -27,7 +32,9 @@
     "web-sdk",
     "typescript",
     "ppg",
-    "heart-rate"
+    "heart-rate",
+    "react",
+    "react-components"
   ],
   "author": "KO Jong Won <gojw@deep-medi.com>",
   "license": "MIT",
@@ -43,6 +50,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:react": "vite --mode react",
     "build": "tsc && vite build",
     "build:lib": "vite build --mode lib",
     "lint": "eslint .",
@@ -52,23 +60,31 @@
     "prepublishOnly": "npm run build:lib",
     "test": "echo \"Error: no test specified\" && exit 1",
     "demo": "vite examples/basic-demo --port 8080 --host 0.0.0.0",
+    "demo:react": "vite examples/react-demo --port 3000 --host 0.0.0.0",
     "release": "standard-version",
     "release:patch": "npm run release -- --release-as patch",
     "release:minor": "npm run release -- --release-as minor",
     "release:major": "npm run release -- --release-as major"
   },
   "peerDependencies": {
-    "@mediapipe/face_detection": "^0.4.1646425229"
+    "@mediapipe/face_detection": "^0.4.1646425229",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@types/node": "^22.15.23",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-basic-ssl": "^2.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
     "eslint": "^9.22.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "globals": "^16.0.0",
     "prettier": "^3.5.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "standard-version": "^9.5.0",
     "terser": "^5.40.0",
     "typescript": "^5.8.3",
