@@ -212,19 +212,6 @@ export interface FaceDetectionError {
  * 측정 결과 인터페이스
  */
 export interface MeasurementResult {
-  /** 심박수 */
-  heartRate?: number;
-  /** 수축기 혈압 */
-  systolic?: number;
-  /** 이완기 혈압 */
-  diastolic?: number;
-  /** 스트레스 지수 */
-  stress?: number;
-  /** HRV 지표들 */
-  hrv?: {
-    RMSSD?: number;
-    SDNN?: number;
-  };
   /** 원시 RGB 데이터 */
   rawData?: RgbDataObject;
   /** 측정 품질 정보 */

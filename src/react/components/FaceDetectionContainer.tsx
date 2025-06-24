@@ -1,5 +1,4 @@
 import React, { useRef } from 'react';
-import { useFaceDetectionContext } from '../context/FaceDetectionContext';
 import { FaceDetectionContainerProps } from '../types/react';
 import './FaceDetectionContainer.css';
 

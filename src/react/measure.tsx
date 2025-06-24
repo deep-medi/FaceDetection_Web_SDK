@@ -41,6 +41,19 @@ const CustomProgressBar: React.FC = () => {
       style={{
         width: 240,
         height: 240,
+        border: '8px solid #ffffff',
+        borderRadius: '50%',
+        position: 'absolute',
+        top: '9.745127436281859vh',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 50,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        overflow: 'hidden',
+        transition: 'all 0.3s ease',
+        boxShadow: '0 0 100vw 100vh rgba(26, 26, 26, 0.6)',
       }}
     ></ProgressBar>
   );

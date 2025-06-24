@@ -1,7 +1,7 @@
-import React, { ReactNode, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useFaceDetection } from '../hooks/useFaceDetection';
 import { FaceDetectionContextProvider } from '../context/FaceDetectionContext';
-import { FaceDetectionProviderProps, FaceDetectionContextType } from '../types/react';
+import { FaceDetectionProviderProps } from '../types/react';
 
 export const FaceDetectionProvider: React.FC<FaceDetectionProviderProps> = ({
   config,
