@@ -33,7 +33,6 @@ SDK는 기능별로 분리된 Manager 클래스들로 구성되어 있습니다:
 - **StateManager**: 상태 전환 및 관리
 - **WebcamManager**: 웹캠 스트림 관리
 - **FacePositionManager**: 얼굴 위치 추적 및 검증
-- **WorkerManager**: Web Worker를 통한 데이터 처리
 - **MeasurementManager**: 측정 과정 및 데이터 수집 관리
 
 ## 🔄 상태 관리 시스템
@@ -169,7 +168,7 @@ await sdk.initializeAndStart();
 
    - 15초간 RGB 데이터 자동 수집
    - 실시간 진행률 표시
-   - Web Worker를 통한 비동기 처리
+   - 원형 영역에서 직접 RGB 추출
 
 5. **결과 분석** (COMPLETED)
    - RGB 데이터 수집 완료
