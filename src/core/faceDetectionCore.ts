@@ -2,17 +2,16 @@
 import {
   Managers,
   processResults,
-  processFaceRegionData,
   handleDataDownload,
   CalculatedBoundingBox,
   Detection,
-  LastRGB,
   FaceDetectionSDKConfig,
   FaceDetectionState,
   MeasurementResult,
   SDKEventCallbacks,
   FaceDetectionErrorType,
 } from './index';
+import { extractRGBFromCircleRegion } from '../utils/circleRegionUtils';
 import packageJson from '../../package.json';
 
 // 상수 정의
@@ -37,7 +36,6 @@ export class FaceDetectionSDK {
   private readonly stateManager: Managers.StateManager;
   private readonly webcamManager: Managers.WebcamManager;
   private readonly facePositionManager: Managers.FacePositionManager;
-  private readonly workerManager: Managers.WorkerManager;
   private readonly measurementManager: Managers.MeasurementManager;
 
   // 상태 플래그들
@@ -48,11 +46,9 @@ export class FaceDetectionSDK {
 
   // HTML 요소들
   private video!: HTMLVideoElement;
-  private canvasElement!: HTMLCanvasElement;
   private videoCanvas!: HTMLCanvasElement;
   private videoCtx!: CanvasRenderingContext2D;
   private container!: HTMLElement;
-  private ctx!: CanvasRenderingContext2D;
 
   // 얼굴 인식 관련 상태
   private lastBoundingBox: CalculatedBoundingBox | null = null;
@@ -78,10 +74,6 @@ export class FaceDetectionSDK {
     this.facePositionManager = new Managers.FacePositionManager(
       this.configManager.getConfig().errorBounding || DEFAULT_ERROR_BOUNDING,
     );
-
-    this.workerManager = new Managers.WorkerManager({
-      onDataProcessed: this.handleWorkerData.bind(this),
-    });
 
     this.measurementManager = new Managers.MeasurementManager(this.configManager.getConfig(), {
       onProgress: this.eventManager.emitProgress.bind(this.eventManager),
@@ -109,7 +101,6 @@ export class FaceDetectionSDK {
       await this.initializeElements();
       if (!this.isInitialized) {
         await this.initializeMediaPipe();
-        this.workerManager.initialize();
         this.isInitialized = true;
         this.log('SDK 초기화가 완료되었습니다.');
       }
@@ -129,7 +120,6 @@ export class FaceDetectionSDK {
   // SDK 정리
   public dispose(): void {
     this.stopDetection();
-    this.workerManager.terminate();
     this.webcamManager.dispose();
     this.mediapipeManager.dispose();
     this.eventManager.dispose();
@@ -173,16 +163,6 @@ export class FaceDetectionSDK {
         dataPoints: result.quality?.dataPoints || 0,
       },
     });
-  }
-
-  // 워커 데이터 처리 핸들러
-  private handleWorkerData(data: any): LastRGB {
-    if (!this.stateManager.isState(FaceDetectionState.MEASURING)) {
-      return this.workerManager.getLastRGB();
-    }
-    const lastRGB = processFaceRegionData(data, [], [], [], [], this.workerManager.getLastRGB());
-    this.measurementManager.addRGBData(lastRGB);
-    return lastRGB;
   }
 
   // 얼굴 인식 설정
@@ -255,17 +235,6 @@ export class FaceDetectionSDK {
     if (!isInCircle) {
       this.handleFaceOutOfCircle();
       return;
-    }
-
-    // MEASURING 상태일 때 얼굴 영역 데이터 전송
-    if (this.stateManager.isState(FaceDetectionState.MEASURING)) {
-      const faceRegion = this.ctx.getImageData(
-        0,
-        0,
-        this.canvasElement.width,
-        this.canvasElement.height,
-      );
-      this.workerManager.postFaceRegionData(faceRegion);
     }
   }
 
@@ -342,11 +311,10 @@ export class FaceDetectionSDK {
 
         if (frameCount % frameProcessInterval === 0) {
           await this.mediapipeManager.sendImage(this.video);
-        } else if (this.lastBoundingBox !== null && this.isFaceInCircle) {
-          // 얼굴 영역 데이터 처리
-          const { left, top, width, height } = this.lastBoundingBox;
-          const faceRegion = this.videoCtx.getImageData(left, top, width, height);
-          this.workerManager.postFaceRegionData(faceRegion);
+        } else if (this.isFaceInCircle) {
+          // 원형 영역에서 RGB 데이터 추출
+          const rgbData = extractRGBFromCircleRegion(this.videoCtx, this.container, this.video);
+          this.measurementManager.addRGBData(rgbData);
         }
       }
 
@@ -388,7 +356,6 @@ export class FaceDetectionSDK {
 
     this.isFaceDetectiveActive = false;
     this.webcamManager.stopWebcam();
-    this.workerManager.terminate();
     if (this.faceDetectionTimer) {
       clearTimeout(this.faceDetectionTimer);
       this.faceDetectionTimer = null;
@@ -430,16 +397,11 @@ export class FaceDetectionSDK {
     }
 
     this.video = config.elements.video;
-    this.canvasElement = config.elements.canvasElement;
     this.videoCanvas = config.elements.videoCanvas;
     this.container = config.elements.container;
     const videoCtx = this.videoCanvas.getContext('2d', { willReadFrequently: true });
     if (!videoCtx) throw new Error('Video canvas context를 가져올 수 없습니다.');
     this.videoCtx = videoCtx;
-
-    const ctx = this.canvasElement.getContext('2d', { willReadFrequently: true });
-    if (!ctx) throw new Error('Canvas context를 가져올 수 없습니다.');
-    this.ctx = ctx;
   }
 
   // MediaPipe 초기화
