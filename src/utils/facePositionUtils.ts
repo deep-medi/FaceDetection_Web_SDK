@@ -32,7 +32,7 @@ export function checkFacePosition(
 
   // progress-bar의 반지름을 비디오 좌표계로 변환
   const radius = (progressRect.width / 2) * scaleX;
-  // 허용 범위를 반지름의 60%로 설정 (너무 엄격하지 않게)
+  // 허용 범위를 반지름의 30%로 설정(엄격하게)
   const allowedRadius = radius * 0.3;
 
   // 바운딩 박스 중심점과 progress-bar 중심점 사이의 거리 계산
