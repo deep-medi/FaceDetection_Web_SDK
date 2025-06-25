@@ -29,7 +29,7 @@ const sdkConfig: FaceDetectionSDKConfig = {
     enableConsoleLog: true,
   },
   dataDownload: {
-    enabled: false,
+    enabled: true,
     autoDownload: false, // 새 창에서 사용자 입력으로 다운로드
     filename: 'face_detection_rgb_data.txt',
   },
